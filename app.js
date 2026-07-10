@@ -2,6 +2,9 @@ const PRODUCTS_KEY = 'mairepood.products';
 const CART_KEY = 'mairepood.cart';
 const ORDERS_KEY = 'mairepood.orders';
 
+// API base URL (update when deployed)
+const API_BASE = window.API_URL || 'http://localhost:3000';
+
 const defaultProducts = [
   {
     id: crypto.randomUUID(),
@@ -32,7 +35,22 @@ const defaultProducts = [
   },
 ];
 
-function loadProducts() {
+async function loadProducts() {
+  try {
+    // Try to fetch from backend first
+    const response = await fetch(`${API_BASE}/api/products`);
+    if (response.ok) {
+      const products = await response.json();
+      if (products.length > 0) {
+        localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+        return products;
+      }
+    }
+  } catch (error) {
+    console.warn('Could not fetch products from backend:', error);
+  }
+
+  // Fallback to localStorage
   const raw = localStorage.getItem(PRODUCTS_KEY);
   if (!raw) {
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(defaultProducts));
@@ -58,11 +76,11 @@ function currency(value) {
   return `€${Number(value).toFixed(2)}`;
 }
 
-function renderProducts() {
+async function renderProducts() {
   const grid = document.getElementById('product-grid');
   if (!grid) return;
 
-  const products = loadProducts();
+  const products = await loadProducts();
   grid.innerHTML = '';
 
   products.forEach((product) => {
@@ -82,11 +100,11 @@ function renderProducts() {
   });
 }
 
-function renderCart() {
+async function renderCart() {
   const cartItems = document.getElementById('cart-items');
   if (!cartItems) return;
 
-  const products = loadProducts();
+  const products = await loadProducts();
   const cart = loadCart();
   const entries = Object.entries(cart);
 
@@ -125,13 +143,13 @@ function addToCart(productId) {
   const cart = loadCart();
   cart[productId] = (cart[productId] || 0) + 1;
   saveCart(cart);
-  renderCart();
+  renderCart(); // renderCart is async but we don't wait
 }
 
-function handleCheckout(event) {
+async function handleCheckout(event) {
   event.preventDefault();
   const form = event.currentTarget;
-  const products = loadProducts();
+  const products = await loadProducts();
   const cart = loadCart();
   const entries = Object.entries(cart);
 
@@ -152,19 +170,39 @@ function handleCheckout(event) {
     }),
   };
 
-  const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
-  orders.push(order);
-  localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+  const statusEl = document.getElementById('checkout-status');
+  statusEl.textContent = 'Tellimusest saadakse teade...';
 
-  localStorage.removeItem(CART_KEY);
-  form.reset();
-  renderCart();
-  document.getElementById('checkout-status').textContent = `Tellimus salvestatud! Kinnitus saadetakse ${order.email}.`;
+  try {
+    // Send order to backend API
+    const response = await fetch(`${API_BASE}/api/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(order),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.statusText}`);
+    }
+
+    // Also save locally as backup
+    const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+    orders.push(order);
+    localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+
+    localStorage.removeItem(CART_KEY);
+    form.reset();
+    await renderCart();
+    statusEl.textContent = `Tellimus salvestatud! Kinnitus saadetakse ${order.email}.`;
+  } catch (error) {
+    console.error('Checkout error:', error);
+    statusEl.textContent = `Viga: ${error.message}. Proovige hiljem uuesti.`;
+  }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  renderProducts();
-  renderCart();
+document.addEventListener('DOMContentLoaded', async () => {
+  await renderProducts();
+  await renderCart();
 
   document.getElementById('product-grid')?.addEventListener('click', (event) => {
     const button = event.target.closest('button[data-id]');

@@ -20,12 +20,27 @@ const unlockError = document.getElementById('unlock-error');
 let editingProductId = null;
 let selectedImageData = null;
 
+// API base URL (update when deployed)
+const API_BASE = window.API_URL || 'http://localhost:3000';
+
 function loadProducts() {
   return JSON.parse(localStorage.getItem(PRODUCTS_KEY) || '[]');
 }
 
-function saveProducts(products) {
+async function saveProducts(products) {
+  // Save locally first
   localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+  
+  // Try to sync with backend
+  try {
+    await fetch(`${API_BASE}/api/products`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(products[0]), // Send just the latest product
+    });
+  } catch (error) {
+    console.warn('Backend sync failed, using local storage:', error);
+  }
 }
 
 function renderProducts() {
@@ -186,7 +201,7 @@ function removeSelectedImage() {
   imageInput.value = '';
 }
 
-productForm.addEventListener('submit', (event) => {
+productForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const products = loadProducts();
   const existingProduct = editingProductId ? products.find((item) => item.id === editingProductId) : null;
@@ -202,21 +217,42 @@ productForm.addEventListener('submit', (event) => {
 
   if (!payload.name || !payload.description || !payload.category) return;
 
-  if (editingProductId) {
-    const index = products.findIndex((item) => item.id === editingProductId);
-    if (index >= 0) {
-      products[index] = { ...products[index], ...payload };
+  try {
+    if (editingProductId) {
+      // Update existing product
+      const index = products.findIndex((item) => item.id === editingProductId);
+      if (index >= 0) {
+        products[index] = { ...products[index], ...payload };
+      }
+      
+      // Send to backend
+      await fetch(`${API_BASE}/api/products/${payload.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    } else {
+      // Create new product
+      products.unshift(payload);
+      
+      // Send to backend
+      await fetch(`${API_BASE}/api/products`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
     }
-  } else {
-    products.unshift(payload);
-  }
 
-  saveProducts(products);
-  renderProducts();
-  resetForm();
+    saveProducts(products);
+    renderProducts();
+    resetForm();
+  } catch (error) {
+    console.error('Product save error:', error);
+    alert('Tõrge toote salvestamisel. Kontrollida serverühendust.');
+  }
 });
 
-productList.addEventListener('click', (event) => {
+productList.addEventListener('click', async (event) => {
   const button = event.target.closest('button[data-action]');
   if (!button) return;
 
@@ -224,9 +260,20 @@ productList.addEventListener('click', (event) => {
   const products = loadProducts();
 
   if (action === 'delete') {
-    const filtered = products.filter((product) => product.id !== id);
-    saveProducts(filtered);
-    renderProducts();
+    try {
+      // Delete from backend
+      await fetch(`${API_BASE}/api/products/${id}`, {
+        method: 'DELETE',
+      });
+      
+      // Delete from local storage
+      const filtered = products.filter((product) => product.id !== id);
+      saveProducts(filtered);
+      renderProducts();
+    } catch (error) {
+      console.error('Product deletion error:', error);
+      alert('Tõrge toote kustutamisel.');
+    }
     return;
   }
 
@@ -275,7 +322,19 @@ passwordInput.addEventListener('keydown', (event) => {
   }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // Try to fetch products from backend
+  try {
+    const response = await fetch(`${API_BASE}/api/products`);
+    if (response.ok) {
+      const products = await response.json();
+      localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+    }
+  } catch (error) {
+    console.warn('Could not fetch products from backend:', error);
+    // Will use local storage fallback
+  }
+
   if (sessionStorage.getItem(ACCESS_KEY) === 'true') {
     showAdminArea();
     renderProducts();
