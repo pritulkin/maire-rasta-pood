@@ -3,7 +3,8 @@ const CART_KEY = 'mairepood.cart';
 const ORDERS_KEY = 'mairepood.orders';
 
 // API base URL (update when deployed)
-const API_BASE = window.API_URL || 'http://localhost:3000';
+// Use relative path by default so deployed frontend uses same origin: set window.API_URL to an absolute URL when needed.
+const API_BASE = (typeof window.API_URL === 'string' && window.API_URL.length) ? window.API_URL.replace(/\/$/, '') : '';
 
 const defaultProducts = [
   {
@@ -44,6 +45,14 @@ async function loadProducts() {
       if (products.length > 0) {
         localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
         return products;
+      }
+    } else {
+      // Log response body to help debugging when backend returns error
+      try {
+        const txt = await response.text();
+        console.warn('Backend returned non-OK for products:', response.status, txt);
+      } catch (e) {
+        console.warn('Backend returned non-OK for products:', response.status);
       }
     }
   } catch (error) {
@@ -182,7 +191,13 @@ async function handleCheckout(event) {
     });
 
     if (!response.ok) {
-      throw new Error(`Server error: ${response.statusText}`);
+      let details = '';
+      try {
+        details = await response.text();
+      } catch (e) {
+        // ignore
+      }
+      throw new Error(`Server error ${response.status}: ${details || response.statusText}`);
     }
 
     // Also save locally as backup
