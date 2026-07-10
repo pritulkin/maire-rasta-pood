@@ -27,19 +27,37 @@ function loadProducts() {
   return JSON.parse(localStorage.getItem(PRODUCTS_KEY) || '[]');
 }
 
-async function saveProducts(products) {
-  // Save locally first
+function saveProducts(products) {
   localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
-  
-  // Try to sync with backend
+}
+
+async function fetchProductsFromBackend() {
   try {
-    await fetch(`${API_BASE}/api/products`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(products[0]), // Send just the latest product
-    });
+    const response = await fetch(`${API_BASE}/api/products`);
+    if (!response.ok) {
+      throw new Error('Failed to load products from backend');
+    }
+    const products = await response.json();
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+    return products;
   } catch (error) {
-    console.warn('Backend sync failed, using local storage:', error);
+    console.warn('Could not fetch products from backend:', error);
+    return loadProducts();
+  }
+}
+
+async function fetchOrdersFromBackend() {
+  try {
+    const response = await fetch(`${API_BASE}/api/orders`);
+    if (!response.ok) {
+      throw new Error('Failed to load orders from backend');
+    }
+    const orders = await response.json();
+    localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+    return orders;
+  } catch (error) {
+    console.warn('Could not fetch orders from backend:', error);
+    return JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
   }
 }
 
@@ -128,11 +146,14 @@ function showLockScreen() {
   adminPage?.classList.add('hidden');
 }
 
-function unlockAdmin() {
+async function unlockAdmin() {
   if ((passwordInput?.value || '') === ADMIN_PASSWORD) {
     sessionStorage.setItem(ACCESS_KEY, 'true');
     showAdminArea();
+    await fetchProductsFromBackend();
+    await fetchOrdersFromBackend();
     renderProducts();
+    renderOrders();
     return;
   }
 
@@ -323,20 +344,10 @@ passwordInput.addEventListener('keydown', (event) => {
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Try to fetch products from backend
-  try {
-    const response = await fetch(`${API_BASE}/api/products`);
-    if (response.ok) {
-      const products = await response.json();
-      localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
-    }
-  } catch (error) {
-    console.warn('Could not fetch products from backend:', error);
-    // Will use local storage fallback
-  }
-
   if (sessionStorage.getItem(ACCESS_KEY) === 'true') {
     showAdminArea();
+    await fetchProductsFromBackend();
+    await fetchOrdersFromBackend();
     renderProducts();
     renderOrders();
     return;
