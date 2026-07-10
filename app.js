@@ -3,8 +3,22 @@ const CART_KEY = 'mairepood.cart';
 const ORDERS_KEY = 'mairepood.orders';
 
 // API base URL (update when deployed)
-// Use relative path by default so deployed frontend uses same origin: set window.API_URL to an absolute URL when needed.
-const API_BASE = (typeof window.API_URL === 'string' && window.API_URL.length) ? window.API_URL.replace(/\/$/, '') : '';
+// Prefer an explicit window.API_URL override when provided. Otherwise use the local backend
+// for localhost previews and fall back to a same-origin relative URL for production.
+const API_BASE = (() => {
+  if (typeof window !== 'undefined' && typeof window.API_URL === 'string' && window.API_URL.trim()) {
+    return window.API_URL.replace(/\/$/, '');
+  }
+
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]') {
+      return 'http://localhost:3000';
+    }
+  }
+
+  return '';
+})();
 
 const defaultProducts = [
   {

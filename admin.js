@@ -21,7 +21,20 @@ let editingProductId = null;
 let selectedImageData = null;
 
 // API base URL (update when deployed)
-const API_BASE = window.API_URL || 'http://localhost:3000';
+const API_BASE = (() => {
+  if (typeof window !== 'undefined' && typeof window.API_URL === 'string' && window.API_URL.trim()) {
+    return window.API_URL.replace(/\/$/, '');
+  }
+
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]') {
+      return 'http://localhost:3000';
+    }
+  }
+
+  return '';
+})();
 
 function loadProducts() {
   return JSON.parse(localStorage.getItem(PRODUCTS_KEY) || '[]');
