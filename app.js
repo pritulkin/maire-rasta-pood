@@ -17,7 +17,7 @@ const API_BASE = (() => {
     }
   }
 
-  return '';
+  return null;
 })();
 
 const defaultProducts = [
@@ -51,26 +51,28 @@ const defaultProducts = [
 ];
 
 async function loadProducts() {
-  try {
-    // Try to fetch from backend first
-    const response = await fetch(`${API_BASE}/api/products`);
-    if (response.ok) {
-      const products = await response.json();
-      if (products.length > 0) {
-        localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
-        return products;
+  if (API_BASE) {
+    try {
+      // Try to fetch from backend first
+      const response = await fetch(`${API_BASE}/api/products`);
+      if (response.ok) {
+        const products = await response.json();
+        if (products.length > 0) {
+          localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+          return products;
+        }
+      } else {
+        // Log response body to help debugging when backend returns error
+        try {
+          const txt = await response.text();
+          console.warn('Backend returned non-OK for products:', response.status, txt);
+        } catch (e) {
+          console.warn('Backend returned non-OK for products:', response.status);
+        }
       }
-    } else {
-      // Log response body to help debugging when backend returns error
-      try {
-        const txt = await response.text();
-        console.warn('Backend returned non-OK for products:', response.status, txt);
-      } catch (e) {
-        console.warn('Backend returned non-OK for products:', response.status);
-      }
+    } catch (error) {
+      console.warn('Could not fetch products from backend:', error);
     }
-  } catch (error) {
-    console.warn('Could not fetch products from backend:', error);
   }
 
   // Fallback to localStorage
@@ -196,33 +198,45 @@ async function handleCheckout(event) {
   const statusEl = document.getElementById('checkout-status');
   statusEl.textContent = 'Tellimusest saadakse teade...';
 
-  try {
-    // Send order to backend API
-    const response = await fetch(`${API_BASE}/api/orders`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(order),
-    });
+    try {
+    if (API_BASE) {
+      // Send order to backend API
+      const response = await fetch(`${API_BASE}/api/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(order),
+      });
 
-    if (!response.ok) {
-      let details = '';
-      try {
-        details = await response.text();
-      } catch (e) {
-        // ignore
+      if (!response.ok) {
+        let details = '';
+        try {
+          details = await response.text();
+        } catch (e) {
+          // ignore
+        }
+        throw new Error(`Server error ${response.status}: ${details || response.statusText}`);
       }
-      throw new Error(`Server error ${response.status}: ${details || response.statusText}`);
+
+      // Also save locally as backup
+      const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+      orders.push(order);
+      localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+
+      localStorage.removeItem(CART_KEY);
+      form.reset();
+      await renderCart();
+      statusEl.textContent = `Tellimus salvestatud! Kinnitus saadetakse ${order.email}.`;
+    } else {
+      // No backend configured — save order locally
+      const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+      orders.push(order);
+      localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+
+      localStorage.removeItem(CART_KEY);
+      form.reset();
+      await renderCart();
+      statusEl.textContent = `Tellimus salvestatud! Kinnitus saadetakse ${order.email}.`;
     }
-
-    // Also save locally as backup
-    const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
-    orders.push(order);
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-
-    localStorage.removeItem(CART_KEY);
-    form.reset();
-    await renderCart();
-    statusEl.textContent = `Tellimus salvestatud! Kinnitus saadetakse ${order.email}.`;
   } catch (error) {
     console.error('Checkout error:', error);
     statusEl.textContent = `Viga: ${error.message}. Proovige hiljem uuesti.`;

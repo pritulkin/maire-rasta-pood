@@ -33,7 +33,7 @@ const API_BASE = (() => {
     }
   }
 
-  return '';
+  return null;
 })();
 
 function loadProducts() {
@@ -46,32 +46,38 @@ function saveProducts(products) {
 
 async function fetchProductsFromBackend() {
   try {
-    const response = await fetch(`${API_BASE}/api/products`);
-    if (!response.ok) {
-      throw new Error('Failed to load products from backend');
+    if (API_BASE) {
+      const response = await fetch(`${API_BASE}/api/products`);
+      if (!response.ok) {
+        throw new Error('Failed to load products from backend');
+      }
+      const products = await response.json();
+      localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+      return products;
     }
-    const products = await response.json();
-    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
-    return products;
   } catch (error) {
     console.warn('Could not fetch products from backend:', error);
-    return loadProducts();
   }
+
+  return loadProducts();
 }
 
 async function fetchOrdersFromBackend() {
   try {
-    const response = await fetch(`${API_BASE}/api/orders`);
-    if (!response.ok) {
-      throw new Error('Failed to load orders from backend');
+    if (API_BASE) {
+      const response = await fetch(`${API_BASE}/api/orders`);
+      if (!response.ok) {
+        throw new Error('Failed to load orders from backend');
+      }
+      const orders = await response.json();
+      localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+      return orders;
     }
-    const orders = await response.json();
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-    return orders;
   } catch (error) {
     console.warn('Could not fetch orders from backend:', error);
-    return JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
   }
+
+  return JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
 }
 
 function renderProducts() {
@@ -260,21 +266,25 @@ productForm.addEventListener('submit', async (event) => {
       }
       
       // Send to backend
-      await fetch(`${API_BASE}/api/products/${payload.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      if (API_BASE) {
+        await fetch(`${API_BASE}/api/products/${payload.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
     } else {
       // Create new product
       products.unshift(payload);
       
       // Send to backend
-      await fetch(`${API_BASE}/api/products`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      if (API_BASE) {
+        await fetch(`${API_BASE}/api/products`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
     }
 
     saveProducts(products);
@@ -296,9 +306,11 @@ productList.addEventListener('click', async (event) => {
   if (action === 'delete') {
     try {
       // Delete from backend
-      await fetch(`${API_BASE}/api/products/${id}`, {
-        method: 'DELETE',
-      });
+      if (API_BASE) {
+        await fetch(`${API_BASE}/api/products/${id}`, {
+          method: 'DELETE',
+        });
+      }
       
       // Delete from local storage
       const filtered = products.filter((product) => product.id !== id);
