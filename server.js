@@ -8,7 +8,27 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
+// Simple request logger to help debug 405 / CORS issues
+app.use((req, res, next) => {
+  console.log(new Date().toISOString(), req.method, req.path, 'origin=', req.headers.origin || '-', 'content-type=', req.headers['content-type'] || '-');
+  next();
+});
+
+// Enable CORS for all routes. Keep this so regular requests work across origins.
 app.use(cors());
+// Ensure preflight (OPTIONS) requests are handled by the cors middleware as well.
+app.options('*', cors());
+
+// In addition to the cors() middleware, add explicit headers and handle OPTIONS early so
+// reverse proxies / unusual environments also respond correctly to preflight requests.
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', process.env.ALLOW_ORIGIN || '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+
 app.use(express.json());
 
 // Configure GitHub
