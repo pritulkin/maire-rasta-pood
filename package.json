@@ -1,16 +1,16 @@
 {
-  "name": "mairepood-backend",
+  "name": "mairepood",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
-  "description": "Backend for Maire Rästa e-shop - sends orders to GitHub",
+  "description": "Maire Rästa käsitöö e‑pood koos Node/Express backendiga",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5"
-  },
-  "devDependencies": {}
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  }
 }
