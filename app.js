@@ -164,7 +164,10 @@ async function renderCart() {
         <strong>${product.name}</strong>
         <div>${quantity} tk</div>
       </div>
-      <div>${currency(product.price * quantity)}</div>
+      <div class="cart-actions">
+        <div>${currency(product.price * quantity)}</div>
+        <button class="button secondary cart-remove" data-remove-id="${product.id}" type="button">Kustuta</button>
+      </div>
     `;
     cartItems.appendChild(row);
   });
@@ -179,7 +182,14 @@ function addToCart(productId) {
   const cart = loadCart();
   cart[productId] = (cart[productId] || 0) + 1;
   saveCart(cart);
-  renderCart(); // renderCart is async but we don't wait
+  void renderCart();
+}
+
+function removeFromCart(productId) {
+  const cart = loadCart();
+  delete cart[productId];
+  saveCart(cart);
+  void renderCart();
 }
 
 async function handleCheckout(event) {
@@ -250,6 +260,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const button = event.target.closest('button[data-id]');
     if (!button) return;
     addToCart(button.dataset.id);
+  });
+
+  document.getElementById('cart-items')?.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-remove-id]');
+    if (!button) return;
+    removeFromCart(button.dataset.removeId);
   });
 
   document.getElementById('checkout-form')?.addEventListener('submit', handleCheckout);

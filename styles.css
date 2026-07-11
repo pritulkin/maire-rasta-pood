@@ -336,6 +336,17 @@ textarea {
   gap: 0.5rem;
 }
 
+.cart-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cart-remove {
+  padding: 0.45rem 0.75rem;
+  font-size: 0.9rem;
+}
+
 @media (max-width: 840px) {
   .hero-grid,
   .cart-layout,
