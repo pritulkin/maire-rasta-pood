@@ -78,14 +78,13 @@ async function saveOrderToGitHub(order) {
   const filename = `order-${order.id}.json`;
   const filepath = path.join(ORDERS_DIR, filename);
 
-  // Save order locally
+  // Save order locally first
   fs.writeFileSync(filepath, JSON.stringify(order, null, 2));
 
   try {
     ensureGitRepo();
 
-    // Git commands
-    execSync('git add .', { cwd: __dirname });
+    execSync('git add .', { cwd: __dirname, stdio: 'pipe' });
     execSync(`git commit -m "Add order ${order.id} from ${order.name}"`, {
       cwd: __dirname,
       stdio: 'pipe',
@@ -98,8 +97,7 @@ async function saveOrderToGitHub(order) {
     console.log(`Order ${order.id} committed to GitHub`);
     return true;
   } catch (error) {
-    console.error('Git push error:', error.message);
-    // Order is still saved locally, so don't fail
+    console.warn('Git sync unavailable, order saved locally:', error.message);
     return false;
   }
 }
@@ -263,15 +261,15 @@ app.post('/api/orders', async (req, res) => {
   try {
     const order = req.body;
 
-    if (!order.id || !order.email || !order.items?.length) {
+    if (!order || typeof order !== 'object') {
       return res.status(400).json({ error: 'Invalid order data' });
     }
 
-    // Save to GitHub
-    await saveOrderToGitHub(order);
+    if (!order.id || !order.email || !Array.isArray(order.items) || !order.items.length) {
+      return res.status(400).json({ error: 'Invalid order data' });
+    }
 
-    // TODO: Send email notification
-    // sendConfirmationEmail(order.email, order);
+    await saveOrderToGitHub(order);
 
     res.status(201).json({
       success: true,
