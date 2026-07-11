@@ -1,0 +1,14 @@
+{
+  "id": "65d9976e-91fc-46b1-857f-7ded8a39f270",
+  "name": "Priit Linnakivi",
+  "email": "priit.linnakivi@gmail.com",
+  "message": "Esitan tellimuse",
+  "createdAt": "2026-07-11T05:42:55.258Z",
+  "items": [
+    {
+      "productId": "a5ff2aa9-84f3-43b7-835c-63f2127a8267",
+      "name": "Pudel",
+      "quantity": 1
+    }
+  ]
+}
