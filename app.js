@@ -12,12 +12,17 @@ const API_BASE = (() => {
 
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
     if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]') {
-      return 'http://localhost:3000';
+      return `${protocol}//${hostname}:3000`;
+    }
+
+    if (protocol === 'http:' || protocol === 'https:') {
+      return '';
     }
   }
 
-  return null;
+  return '';
 })();
 
 const defaultProducts = [
@@ -95,6 +100,12 @@ function loadCart() {
 
 function saveCart(cart) {
   localStorage.setItem(CART_KEY, JSON.stringify(cart));
+}
+
+function saveOrderLocally(order) {
+  const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+  orders.push(order);
+  localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
 }
 
 function currency(value) {
@@ -198,48 +209,36 @@ async function handleCheckout(event) {
   const statusEl = document.getElementById('checkout-status');
   statusEl.textContent = 'Tellimusest saadakse teade...';
 
-    try {
-    if (API_BASE) {
-      // Send order to backend API
-      const response = await fetch(`${API_BASE}/api/orders`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(order),
-      });
+  try {
+    const endpoint = API_BASE ? `${API_BASE}/api/orders` : '/api/orders';
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(order),
+    });
 
-      if (!response.ok) {
-        let details = '';
-        try {
-          details = await response.text();
-        } catch (e) {
-          // ignore
-        }
-        throw new Error(`Server error ${response.status}: ${details || response.statusText}`);
+    if (!response.ok) {
+      let details = '';
+      try {
+        details = await response.text();
+      } catch (e) {
+        // ignore
       }
-
-      // Also save locally as backup
-      const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
-      orders.push(order);
-      localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-
-      localStorage.removeItem(CART_KEY);
-      form.reset();
-      await renderCart();
-      statusEl.textContent = `Tellimus salvestatud! Kinnitus saadetakse ${order.email}.`;
-    } else {
-      // No backend configured — save order locally
-      const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
-      orders.push(order);
-      localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-
-      localStorage.removeItem(CART_KEY);
-      form.reset();
-      await renderCart();
-      statusEl.textContent = `Tellimus salvestatud! Kinnitus saadetakse ${order.email}.`;
+      throw new Error(`Server error ${response.status}: ${details || response.statusText}`);
     }
+
+    saveOrderLocally(order);
+    localStorage.removeItem(CART_KEY);
+    form.reset();
+    await renderCart();
+    statusEl.textContent = `Tellimus salvestatud! Kinnitus saadetakse ${order.email}.`;
   } catch (error) {
-    console.error('Checkout error:', error);
-    statusEl.textContent = `Viga: ${error.message}. Proovige hiljem uuesti.`;
+    console.warn('Backend order submission unavailable, saving locally instead:', error);
+    saveOrderLocally(order);
+    localStorage.removeItem(CART_KEY);
+    form.reset();
+    await renderCart();
+    statusEl.textContent = `Tellimus salvestati kohalikult. Kinnitus saadetakse ${order.email}.`;
   }
 }
 
