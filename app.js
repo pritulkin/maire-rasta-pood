@@ -14,7 +14,7 @@ const API_BASE = (() => {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
     if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]') {
-      return `${protocol}//${hostname}:3000`;
+      return `${protocol}//${hostname}:10000`;
     }
 
     if (protocol === 'http:' || protocol === 'https:') {
