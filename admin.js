@@ -248,140 +248,150 @@ function removeSelectedImage() {
 
 productForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const products = loadProducts();
-  const existingProduct = editingProductId ? products.find((item) => item.id === editingProductId) : null;
-  const payload = {
-    id: hiddenId.value || crypto.randomUUID(),
+
+  const id = hiddenId.value || crypto.randomUUID();
+  const productData = {
+    id: id,
     name: document.getElementById('product-name').value.trim(),
     description: document.getElementById('product-description').value.trim(),
-    price: Number(document.getElementById('product-price').value),
-    stock: Number(document.getElementById('product-stock').value),
-    category: document.getElementById('product-category').value.trim(),
-    image: selectedImageData || existingProduct?.image || null,
+    price: parseFloat(document.getElementById('product-price').value) || 0,
+    stock: parseInt(document.getElementById('product-stock').value, 10) || 0,
+    category: document.getElementById('product-category').value,
+    image: selectedImageData // Base64 string või null
   };
 
-  if (!payload.name || !payload.description || !payload.category) return;
-
   try {
-    if (editingProductId) {
-      // Update existing product
-      const index = products.findIndex((item) => item.id === editingProductId);
-      if (index >= 0) {
-        products[index] = { ...products[index], ...payload };
-      }
-      
-      // Send to backend
-      if (API_BASE) {
-        await fetch(`${API_BASE}/api/products/${payload.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-      }
-    } else {
-      // Create new product
-      products.unshift(payload);
-      
-      // Send to backend
-      if (API_BASE) {
-        await fetch(`${API_BASE}/api/products`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-      }
+    if (API_BASE) {
+      // Kui editingProductId on olemas, uuendame (PUT), muidu loome uue (POST)
+      const url = editingProductId ? `${API_BASE}/api/products/${id}` : `${API_BASE}/api/products`;
+      const method = editingProductId ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productData)
+      });
+
+      if (!response.ok) throw new Error('Toote salvestamine backendis ebaõnnestus');
     }
 
+    // Uuendame ka kohalikku seisundit ja renderdame
+    let products = loadProducts();
+    if (editingProductId) {
+      products = products.map(p => p.id === editingProductId ? productData : p);
+    } else {
+      products.push(productData);
+    }
     saveProducts(products);
     renderProducts();
     resetForm();
+    alert('Toode on edukalt salvestatud!');
   } catch (error) {
-    console.error('Product save error:', error);
-    alert('Tõrge toote salvestamisel. Kontrollida serverühendust.');
+    console.error('Viga salvestamisel:', error);
+    alert('Viga: Toote salvestamine ebaõnnestus.');
   }
 });
 
+// Toodete nimekirja tegevused (Muuda / Kustuta)
 productList.addEventListener('click', async (event) => {
-  const button = event.target.closest('button[data-action]');
-  if (!button) return;
+  const target = event.target;
+  const action = target.getAttribute('data-action');
+  const id = target.getAttribute('data-id');
+  if (!action || !id) return;
 
-  const { action, id } = button.dataset;
   const products = loadProducts();
 
-  if (action === 'delete') {
-    try {
-      // Delete from backend
-      if (API_BASE) {
-        await fetch(`${API_BASE}/api/products/${id}`, {
-          method: 'DELETE',
-        });
-      }
-      
-      // Delete from local storage
-      const filtered = products.filter((product) => product.id !== id);
-      saveProducts(filtered);
-      renderProducts();
-    } catch (error) {
-      console.error('Product deletion error:', error);
-      alert('Tõrge toote kustutamisel.');
-    }
-    return;
-  }
-
   if (action === 'edit') {
-    const product = products.find((item) => item.id === id);
+    const product = products.find(p => p.id === id);
     if (product) fillForm(product);
+  } else if (action === 'delete') {
+    if (!confirm('Kas oled kindel, et soovid selle toote kustutada?')) return;
+
+    try {
+      if (API_BASE) {
+        const response = await fetch(`${API_BASE}/api/products/${id}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Kustutamine backendis ebaõnnestus');
+      }
+
+      const updatedProducts = products.filter(p => p.id !== id);
+      saveProducts(updatedProducts);
+      renderProducts();
+      if (editingProductId === id) resetForm();
+    } catch (error) {
+      console.error('Viga kustutamisel:', error);
+      alert('Viga: Toote kustutamine ebaõnnestus.');
+    }
   }
 });
 
-orderList.addEventListener('click', (event) => {
-  const button = event.target.closest('button[data-action]');
-  if (!button) return;
+// Tellimuste nimekirja tegevused (Muuda staatust / Kustuta)
+orderList.addEventListener('click', async (event) => {
+  const target = event.target;
+  const action = target.getAttribute('data-action');
+  const id = target.getAttribute('data-id');
+  if (!action || !id) return;
 
-  const { action, id } = button.dataset;
-  const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+  let orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+  const order = orders.find(o => o.id === id);
 
-  if (action === 'delete-order') {
-    const filtered = orders.filter((order) => order.id !== id);
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(filtered));
-    renderOrders();
-    return;
-  }
+  if (action === 'toggle-order' && order) {
+    const newStatus = order.status === 'processed' ? 'pending' : 'processed';
+    
+    try {
+      if (API_BASE) {
+        const response = await fetch(`${API_BASE}/api/orders/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+        if (!response.ok) throw new Error('Tellimuse staatuse muutmine ebaõnnestus');
+      }
 
-  if (action === 'toggle-order') {
-    const updated = orders.map((order) =>
-      order.id === id ? { ...order, status: order.status === 'processed' ? 'pending' : 'processed' } : order
-    );
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(updated));
-    renderOrders();
+      order.status = newStatus;
+      localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+      renderOrders();
+    } catch (error) {
+      console.error('Viga staatuse muutmisel:', error);
+      alert('Viga: Tellimuse staatust ei saanud muuta.');
+    }
+  } else if (action === 'delete-order') {
+    if (!confirm('Kas oled kindel, et soovid selle tellimuse ajaloost kustutada?')) return;
+
+    try {
+      if (API_BASE) {
+        const response = await fetch(`${API_BASE}/api/orders/${id}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Tellimuse kustutamine ebaõnnestus');
+      }
+
+      orders = orders.filter(o => o.id !== id);
+      localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+      renderOrders();
+    } catch (error) {
+      console.error('Viga tellimuse kustutamisel:', error);
+      alert('Viga: Tellimust ei saanud kustutada.');
+    }
   }
 });
 
+// Lisafunktsionaalsus nuppudele (Tühista, Pildi asendus/eemaldus ja Lukust lahtitegemine)
 cancelEditButton.addEventListener('click', resetForm);
-imageInput.addEventListener('change', (event) => {
-  handleImageSelection(event);
-});
-replaceImageButton.addEventListener('click', () => {
-  imageInput.click();
-});
+imageInput.addEventListener('change', handleImageSelection);
 removeImageButton.addEventListener('click', removeSelectedImage);
+replaceImageButton.addEventListener('click', () => imageInput.click());
 unlockButton.addEventListener('click', unlockAdmin);
-passwordInput.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') {
-    event.preventDefault();
-    unlockAdmin();
-  }
+passwordInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') unlockAdmin();
 });
 
-document.addEventListener('DOMContentLoaded', async () => {
+// Automaatne sisselogimise kontroll lehe laadimisel
+(() => {
   if (sessionStorage.getItem(ACCESS_KEY) === 'true') {
     showAdminArea();
-    await fetchProductsFromBackend();
-    await fetchOrdersFromBackend();
-    renderProducts();
-    renderOrders();
-    return;
+    Promise.all([fetchProductsFromBackend(), fetchOrdersFromBackend()]).then(() => {
+      renderProducts();
+      renderOrders();
+    });
+  } else {
+    showLockScreen();
   }
-
-  showLockScreen();
-});
+})();
