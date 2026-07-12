@@ -28,12 +28,17 @@ const API_BASE = (() => {
 
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
     if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]') {
-      return 'http://localhost:3000';
+      return `${protocol}//${hostname}:10000`;
+    }
+
+    if (protocol === 'http:' || protocol === 'https:') {
+      return '';
     }
   }
 
-  return null;
+  return '';
 })();
 
 function loadProducts() {
