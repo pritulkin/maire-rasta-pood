@@ -31,6 +31,9 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
+// Serve static front-end files from the project root
+app.use(express.static(path.join(__dirname)));
+
 // Configure GitHub
 const GITHUB_REPO = process.env.GITHUB_REPO || 'your-username/your-repo';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
