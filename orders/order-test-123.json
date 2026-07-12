@@ -1,0 +1,11 @@
+{
+  "id": "test-123",
+  "email": "a@b.ee",
+  "items": [
+    {
+      "productId": "1",
+      "name": "Test",
+      "quantity": 1
+    }
+  ]
+}
