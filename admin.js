@@ -67,6 +67,7 @@ async function fetchProductsFromBackend() {
   return loadProducts();
 }
 
+// MUUDETUD: Laeb tellimused backendist /orders kaustast
 async function fetchOrdersFromBackend() {
   try {
     if (API_BASE) {
@@ -75,6 +76,7 @@ async function fetchOrdersFromBackend() {
         throw new Error('Failed to load orders from backend');
       }
       const orders = await response.json();
+      // Salvestame ka lokaalselt varukoopiana
       localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
       return orders;
     }
@@ -85,19 +87,58 @@ async function fetchOrdersFromBackend() {
   return JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
 }
 
-// UUS: Funktsioon tellimuste salvestamiseks backendisse
-async function saveOrdersToBackend(orders) {
+// MUUDETUD: Tellimuste salvestamine backendisse (orders kausta)
+async function saveOrderToBackend(order) {
   if (!API_BASE) return false;
   
   try {
     const response = await fetch(`${API_BASE}/api/orders`, {
-      method: 'PUT',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orders)
+      body: JSON.stringify(order)
     });
+    
+    if (!response.ok) {
+      throw new Error('Failed to save order to backend');
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Failed to save order to backend:', error);
+    return false;
+  }
+}
+
+// MUUDETUD: Tellimuse staatuse uuendamine backendis
+async function updateOrderStatusInBackend(orderId, newStatus) {
+  if (!API_BASE) return false;
+  
+  try {
+    const response = await fetch(`${API_BASE}/api/orders/${orderId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    });
+    
     return response.ok;
   } catch (error) {
-    console.error('Failed to save orders to backend:', error);
+    console.error('Failed to update order status:', error);
+    return false;
+  }
+}
+
+// MUUDETUD: Tellimuse kustutamine backendist
+async function deleteOrderFromBackend(orderId) {
+  if (!API_BASE) return false;
+  
+  try {
+    const response = await fetch(`${API_BASE}/api/orders/${orderId}`, {
+      method: 'DELETE'
+    });
+    
+    return response.ok;
+  } catch (error) {
+    console.error('Failed to delete order:', error);
     return false;
   }
 }
@@ -131,9 +172,10 @@ function renderProducts() {
   productList.appendChild(fragment);
 }
 
+// MUUDETUD: Laeb tellimused backendist ja renderdab
 async function renderOrders() {
-  // Laeme tellimused backendist (mitte localStorage'ist)
   let orders = [];
+  
   if (API_BASE) {
     orders = await fetchOrdersFromBackend();
   } else {
@@ -201,7 +243,7 @@ async function unlockAdmin() {
     await fetchProductsFromBackend();
     await fetchOrdersFromBackend();
     renderProducts();
-    renderOrders();
+    await renderOrders();
     return;
   }
 
@@ -281,7 +323,7 @@ productForm.addEventListener('submit', async (event) => {
     price: parseFloat(document.getElementById('product-price').value) || 0,
     stock: parseInt(document.getElementById('product-stock').value, 10) || 0,
     category: document.getElementById('product-category').value,
-    image: selectedImageData // Base64 string või null
+    image: selectedImageData
   };
 
   try {
@@ -352,37 +394,35 @@ orderList.addEventListener('click', async (event) => {
   const id = target.getAttribute('data-id');
   if (!action || !id) return;
 
-  // Laeme tellimused backendist
-  let orders = [];
-  if (API_BASE) {
-    const response = await fetch(`${API_BASE}/api/orders`);
-    orders = await response.json();
-  } else {
-    orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
-  }
-  
-  const order = orders.find(o => o.id === id);
-
-  if (action === 'toggle-order' && order) {
-    const newStatus = order.status === 'processed' ? 'pending' : 'processed';
-    
+  if (action === 'toggle-order') {
     try {
+      // Laeme tellimused backendist
+      let orders = [];
       if (API_BASE) {
-        const response = await fetch(`${API_BASE}/api/orders/${id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: newStatus })
-        });
-        if (!response.ok) throw new Error('Tellimuse staatuse muutmine ebaõnnestus');
-        
-        // Uuendame kohalikku koopiat
-        order.status = newStatus;
+        const response = await fetch(`${API_BASE}/api/orders`);
+        orders = await response.json();
+      } else {
+        orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+      }
+      
+      const order = orders.find(o => o.id === id);
+      if (!order) {
+        alert('Tellimust ei leitud');
+        return;
+      }
+      
+      const newStatus = order.status === 'processed' ? 'pending' : 'processed';
+      
+      // Uuendame backendis
+      if (API_BASE) {
+        const success = await updateOrderStatusInBackend(id, newStatus);
+        if (!success) throw new Error('Staatuse uuendamine ebaõnnestus');
       } else {
         order.status = newStatus;
         localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
       }
-
-      renderOrders();
+      
+      await renderOrders();
     } catch (error) {
       console.error('Viga staatuse muutmisel:', error);
       alert('Viga: Tellimuse staatust ei saanud muuta.');
@@ -392,16 +432,15 @@ orderList.addEventListener('click', async (event) => {
 
     try {
       if (API_BASE) {
-        const response = await fetch(`${API_BASE}/api/orders/${id}`, { method: 'DELETE' });
-        if (!response.ok) throw new Error('Tellimuse kustutamine ebaõnnestus');
-        
-        orders = orders.filter(o => o.id !== id);
+        const success = await deleteOrderFromBackend(id);
+        if (!success) throw new Error('Kustutamine ebaõnnestus');
       } else {
+        let orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
         orders = orders.filter(o => o.id !== id);
         localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
       }
-
-      renderOrders();
+      
+      await renderOrders();
     } catch (error) {
       console.error('Viga tellimuse kustutamisel:', error);
       alert('Viga: Tellimust ei saanud kustutada.');
