@@ -13,10 +13,11 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static('public'));
 
-// Ensure directories exist
+// Kataloogide asukohad
 const ORDERS_DIR = path.join(__dirname, 'orders');
 const PRODUCTS_DIR = path.join(__dirname, 'products');
 
+// Loome vajadusel andmekataloogid
 if (!fs.existsSync(ORDERS_DIR)) {
   fs.mkdirSync(ORDERS_DIR, { recursive: true });
   console.log('Created orders directory');
@@ -27,9 +28,31 @@ if (!fs.existsSync(PRODUCTS_DIR)) {
   console.log('Created products directory');
 }
 
+// ==================== GITHUB SYNC ====================
+
+// Automaatne Git sync funktsioon muutuste salvestamiseks
+function syncToGitHub() {
+  try {
+    const { execSync } = require('child_process');
+    
+    // Kontrollime, kas asume Git repositooriumis
+    const isGitRepo = execSync('git rev-parse --is-inside-work-tree', { encoding: 'utf8' }).trim() === 'true';
+    
+    if (isGitRepo) {
+      execSync('git add orders/ products/', { encoding: 'utf8' });
+      // --allow-empty hoiab ära vea, kui midagi uut polegi committida
+      execSync('git commit -m "Auto-sync: Update orders and products" --allow-empty', { encoding: 'utf8' });
+      execSync('git push', { encoding: 'utf8' });
+      console.log('Changes synced to GitHub');
+    }
+  } catch (error) {
+    console.log('GitHub sync skipped (not a git repository or git not configured)');
+  }
+}
+
 // ==================== PRODUCTS ====================
 
-// GET all products
+// GET: Kõik tooted
 app.get('/api/products', (req, res) => {
   try {
     const products = [];
@@ -50,7 +73,7 @@ app.get('/api/products', (req, res) => {
   }
 });
 
-// POST new product
+// POST: Uus toode
 app.post('/api/products', (req, res) => {
   try {
     const product = req.body;
@@ -59,7 +82,6 @@ app.post('/api/products', (req, res) => {
       return res.status(400).json({ error: 'Invalid product data' });
     }
     
-    // Generate ID if not provided
     if (!product.id) {
       product.id = crypto.randomUUID();
     }
@@ -69,6 +91,9 @@ app.post('/api/products', (req, res) => {
     
     fs.writeFileSync(filepath, JSON.stringify(product, null, 2));
     console.log(`Product saved to ${filepath}`);
+    
+    // Käivitame giti sünkroniseerimise pärast edukat salvestamist
+    syncToGitHub();
     
     res.status(201).json({
       success: true,
@@ -81,7 +106,7 @@ app.post('/api/products', (req, res) => {
   }
 });
 
-// PUT update product
+// PUT: Uuenda toodet
 app.put('/api/products/:id', (req, res) => {
   try {
     const { id } = req.params;
@@ -94,9 +119,11 @@ app.put('/api/products/:id', (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
     
-    product.id = id; // Ensure ID stays the same
+    product.id = id; 
     fs.writeFileSync(filepath, JSON.stringify(product, null, 2));
     console.log(`Product ${id} updated`);
+    
+    syncToGitHub();
     
     res.json({
       success: true,
@@ -108,7 +135,7 @@ app.put('/api/products/:id', (req, res) => {
   }
 });
 
-// DELETE product
+// DELETE: Kustuta toode
 app.delete('/api/products/:id', (req, res) => {
   try {
     const { id } = req.params;
@@ -118,6 +145,9 @@ app.delete('/api/products/:id', (req, res) => {
     if (fs.existsSync(filepath)) {
       fs.unlinkSync(filepath);
       console.log(`Product ${id} deleted`);
+      
+      syncToGitHub();
+      
       res.json({ success: true, message: 'Product deleted' });
     } else {
       res.status(404).json({ error: 'Product not found' });
@@ -130,7 +160,7 @@ app.delete('/api/products/:id', (req, res) => {
 
 // ==================== ORDERS ====================
 
-// GET all orders
+// GET: Kõik tellimused
 app.get('/api/orders', (req, res) => {
   try {
     const orders = [];
@@ -151,7 +181,7 @@ app.get('/api/orders', (req, res) => {
   }
 });
 
-// POST new order
+// POST: Uus tellimus
 app.post('/api/orders', (req, res) => {
   try {
     const order = req.body;
@@ -164,10 +194,8 @@ app.post('/api/orders', (req, res) => {
       return res.status(400).json({ error: 'Invalid order data' });
     }
     
-    // Add default status if not provided
     order.status = order.status || 'pending';
     
-    // Add createdAt if not provided
     if (!order.createdAt) {
       order.createdAt = new Date().toISOString();
     }
@@ -177,6 +205,8 @@ app.post('/api/orders', (req, res) => {
     
     fs.writeFileSync(filepath, JSON.stringify(order, null, 2));
     console.log(`Order saved to ${filepath}`);
+    
+    syncToGitHub();
     
     res.status(201).json({
       success: true,
@@ -189,7 +219,7 @@ app.post('/api/orders', (req, res) => {
   }
 });
 
-// PATCH update order status
+// PATCH: Uuenda tellimuse staatust
 app.patch('/api/orders/:id', (req, res) => {
   try {
     const { id } = req.params;
@@ -212,6 +242,8 @@ app.patch('/api/orders/:id', (req, res) => {
     fs.writeFileSync(filepath, JSON.stringify(order, null, 2));
     console.log(`Order ${id} status updated to ${status}`);
     
+    syncToGitHub();
+    
     res.json({
       success: true,
       message: 'Order status updated'
@@ -222,7 +254,7 @@ app.patch('/api/orders/:id', (req, res) => {
   }
 });
 
-// DELETE order
+// DELETE: Kustuta tellimus
 app.delete('/api/orders/:id', (req, res) => {
   try {
     const { id } = req.params;
@@ -232,6 +264,9 @@ app.delete('/api/orders/:id', (req, res) => {
     if (fs.existsSync(filepath)) {
       fs.unlinkSync(filepath);
       console.log(`Order ${id} deleted`);
+      
+      syncToGitHub();
+      
       res.json({ success: true, message: 'Order deleted' });
     } else {
       res.status(404).json({ error: 'Order not found' });
@@ -241,27 +276,6 @@ app.delete('/api/orders/:id', (req, res) => {
     res.status(500).json({ error: 'Failed to delete order' });
   }
 });
-
-// ==================== GITHUB SYNC ====================
-
-// Optional: Sync to GitHub after changes
-function syncToGitHub() {
-  try {
-    const { execSync } = require('child_process');
-    
-    // Check if we're in a git repository
-    const isGitRepo = execSync('git rev-parse --is-inside-work-tree', { encoding: 'utf8' }).trim() === 'true';
-    
-    if (isGitRepo) {
-      execSync('git add orders/ products/', { encoding: 'utf8' });
-      execSync('git commit -m "Auto-sync: Update orders and products" --allow-empty', { encoding: 'utf8' });
-      execSync('git push', { encoding: 'utf8' });
-      console.log('Changes synced to GitHub');
-    }
-  } catch (error) {
-    console.log('GitHub sync skipped (not a git repository or git not configured)');
-  }
-}
 
 // ==================== START SERVER ====================
 
