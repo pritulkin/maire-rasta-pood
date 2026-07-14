@@ -1,253 +1,281 @@
-import express from 'express';
-import cors from 'cors';
-import { execSync } from 'child_process';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+// server.js
+const express = require('express');
+const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
+const PORT = process.env.PORT || 10000;
 
-// Logimine
-app.use((req, res, next) => {
-  console.log(
-    new Date().toISOString(),
-    req.method,
-    req.path,
-    'origin=', req.headers.origin || '-',
-    'content-type=', req.headers['content-type'] || '-'
-  );
-  next();
-});
-
+// Middleware
 app.use(cors());
-app.options('*', cors());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.static('public'));
 
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', process.env.ALLOW_ORIGIN || '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') return res.sendStatus(200);
-  next();
-});
+// Ensure directories exist
+const ORDERS_DIR = path.join(__dirname, 'orders');
+const PRODUCTS_DIR = path.join(__dirname, 'products');
 
-app.use(express.json());
-
-// Serve static
-app.use(express.static(path.join(__dirname)));
-
-// GitHub config
-const GITHUB_REPO = process.env.GITHUB_REPO || 'your-username/your-repo';
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-
-// *** OLULINE PARANDUS ***
-// Kasuta alati projekti juurkausta, mitte serveri faili asukohta
-const ORDERS_DIR = path.resolve('./orders');
-const PRODUCTS_FILE = path.resolve('./products.json');
-
-console.log("ORDERS_DIR =", ORDERS_DIR);
-console.log("PRODUCTS_FILE =", PRODUCTS_FILE);
-
-// Ensure orders dir exists
 if (!fs.existsSync(ORDERS_DIR)) {
   fs.mkdirSync(ORDERS_DIR, { recursive: true });
+  console.log('Created orders directory');
 }
 
-// Git init
-function ensureGitRepo() {
-  const gitDir = path.resolve('./.git');
-
-  if (!fs.existsSync(gitDir)) {
-    console.log('Initializing git repository...');
-    try {
-      execSync('git init', { cwd: process.cwd() });
-    } catch (error) {
-      console.error('Git initialization error:', error.message);
-      return;
-    }
-  }
-
-  try {
-    execSync('git remote get-url origin', { cwd: process.cwd(), stdio: 'pipe' });
-  } catch {
-    if (!GITHUB_TOKEN) {
-      console.warn('Git remote not configured and GITHUB_TOKEN missing.');
-      return;
-    }
-
-    try {
-      execSync(
-        `git remote add origin https://${GITHUB_TOKEN}@github.com/${GITHUB_REPO}.git`,
-        { cwd: process.cwd(), stdio: 'pipe' }
-      );
-    } catch (error) {
-      console.error('Git remote setup error:', error.message);
-    }
-  }
+if (!fs.existsSync(PRODUCTS_DIR)) {
+  fs.mkdirSync(PRODUCTS_DIR, { recursive: true });
+  console.log('Created products directory');
 }
 
-// Save order
-async function saveOrderToGitHub(order) {
-  const filename = `order-${order.id}.json`;
-  const filepath = path.join(ORDERS_DIR, filename);
+// ==================== PRODUCTS ====================
 
-  // Add createdAt if missing
-  if (!order.createdAt) {
-    order.createdAt = new Date().toISOString();
-  }
-
-  // Write file ALWAYS
-  fs.writeFileSync(filepath, JSON.stringify(order, null, 2));
-  console.log("Order saved locally:", filepath);
-
-  // Try Git sync but NEVER fail order saving
+// GET all products
+app.get('/api/products', (req, res) => {
   try {
-    ensureGitRepo();
-    execSync('git add .', { cwd: process.cwd() });
-    execSync(`git commit -m "Add order ${order.id}"`, {
-      cwd: process.cwd(),
-      stdio: 'pipe',
-    });
-    execSync('git push origin main', {
-      cwd: process.cwd(),
-      stdio: 'pipe',
-    });
-
-    console.log(`Order ${order.id} pushed to GitHub`);
-  } catch (error) {
-    console.warn('Git push failed:', error.message);
-  }
-}
-
-// Load products
-function loadProductsFile() {
-  try {
-    if (fs.existsSync(PRODUCTS_FILE)) {
-      return JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf8'));
+    const products = [];
+    
+    if (fs.existsSync(PRODUCTS_DIR)) {
+      const files = fs.readdirSync(PRODUCTS_DIR).filter(f => f.endsWith('.json'));
+      files.forEach(file => {
+        const filePath = path.join(PRODUCTS_DIR, file);
+        const product = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        products.push(product);
+      });
     }
+    
+    res.json(products);
   } catch (error) {
     console.error('Error loading products:', error);
+    res.status(500).json({ error: 'Failed to load products' });
   }
-  return [];
-}
-
-// Save products
-function saveProductsFile(products) {
-  fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2));
-  console.log("Products saved:", PRODUCTS_FILE);
-
-  try {
-    ensureGitRepo();
-    execSync('git add products.json', { cwd: process.cwd() });
-    execSync('git commit -m "Update products"', {
-      cwd: process.cwd(),
-      stdio: 'pipe',
-    });
-    execSync('git push origin main', {
-      cwd: process.cwd(),
-      stdio: 'pipe',
-    });
-  } catch (error) {
-    console.error('Git push error:', error.message);
-  }
-}
-
-// Load orders
-function loadOrdersFromDir() {
-  if (!fs.existsSync(ORDERS_DIR)) return [];
-
-  try {
-    return fs.readdirSync(ORDERS_DIR)
-      .filter((file) => file.endsWith('.json'))
-      .map((file) => {
-        try {
-          return JSON.parse(fs.readFileSync(path.join(ORDERS_DIR, file), 'utf8'));
-        } catch (error) {
-          console.error(`Could not parse order file ${file}:`, error.message);
-          return null;
-        }
-      })
-      .filter(Boolean)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  } catch (error) {
-    console.error('Error loading orders:', error.message);
-    return [];
-  }
-}
-
-// API routes
-app.get('/api/products', (req, res) => {
-  res.json(loadProductsFile());
 });
 
+// POST new product
 app.post('/api/products', (req, res) => {
-  const product = req.body;
-
-  if (!product.id || !product.name || !product.description || !product.category) {
-    return res.status(400).json({ error: 'Invalid product data' });
+  try {
+    const product = req.body;
+    
+    if (!product || !product.name || !product.price) {
+      return res.status(400).json({ error: 'Invalid product data' });
+    }
+    
+    // Generate ID if not provided
+    if (!product.id) {
+      product.id = crypto.randomUUID();
+    }
+    
+    const filename = `product-${product.id}.json`;
+    const filepath = path.join(PRODUCTS_DIR, filename);
+    
+    fs.writeFileSync(filepath, JSON.stringify(product, null, 2));
+    console.log(`Product saved to ${filepath}`);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Product created',
+      productId: product.id
+    });
+  } catch (error) {
+    console.error('Error saving product:', error);
+    res.status(500).json({ error: 'Failed to save product' });
   }
-
-  const products = loadProductsFile();
-  products.unshift(product);
-  saveProductsFile(products);
-
-  res.status(201).json({ success: true, product });
 });
 
+// PUT update product
 app.put('/api/products/:id', (req, res) => {
-  const { id } = req.params;
-  const updatedProduct = req.body;
-
-  const products = loadProductsFile();
-  const index = products.findIndex((p) => p.id === id);
-
-  if (index < 0) return res.status(404).json({ error: 'Product not found' });
-
-  products[index] = { ...products[index], ...updatedProduct };
-  saveProductsFile(products);
-
-  res.json({ success: true, product: products[index] });
+  try {
+    const { id } = req.params;
+    const product = req.body;
+    
+    const filename = `product-${id}.json`;
+    const filepath = path.join(PRODUCTS_DIR, filename);
+    
+    if (!fs.existsSync(filepath)) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    
+    product.id = id; // Ensure ID stays the same
+    fs.writeFileSync(filepath, JSON.stringify(product, null, 2));
+    console.log(`Product ${id} updated`);
+    
+    res.json({
+      success: true,
+      message: 'Product updated'
+    });
+  } catch (error) {
+    console.error('Error updating product:', error);
+    res.status(500).json({ error: 'Failed to update product' });
+  }
 });
 
+// DELETE product
 app.delete('/api/products/:id', (req, res) => {
-  const { id } = req.params;
-  const products = loadProductsFile();
-  const filtered = products.filter((p) => p.id !== id);
-
-  if (filtered.length === products.length) {
-    return res.status(404).json({ error: 'Product not found' });
+  try {
+    const { id } = req.params;
+    const filename = `product-${id}.json`;
+    const filepath = path.join(PRODUCTS_DIR, filename);
+    
+    if (fs.existsSync(filepath)) {
+      fs.unlinkSync(filepath);
+      console.log(`Product ${id} deleted`);
+      res.json({ success: true, message: 'Product deleted' });
+    } else {
+      res.status(404).json({ error: 'Product not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    res.status(500).json({ error: 'Failed to delete product' });
   }
-
-  saveProductsFile(filtered);
-  res.json({ success: true });
 });
 
-// Orders
+// ==================== ORDERS ====================
+
+// GET all orders
 app.get('/api/orders', (req, res) => {
-  res.json(loadOrdersFromDir());
-});
-
-app.post('/api/orders', async (req, res) => {
-  const order = req.body;
-
-  if (!order || !order.id || !order.email || !Array.isArray(order.items)) {
-    return res.status(400).json({ error: 'Invalid order data' });
+  try {
+    const orders = [];
+    
+    if (fs.existsSync(ORDERS_DIR)) {
+      const files = fs.readdirSync(ORDERS_DIR).filter(f => f.endsWith('.json'));
+      files.forEach(file => {
+        const filePath = path.join(ORDERS_DIR, file);
+        const order = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        orders.push(order);
+      });
+    }
+    
+    res.json(orders);
+  } catch (error) {
+    console.error('Error loading orders:', error);
+    res.status(500).json({ error: 'Failed to load orders' });
   }
-
-  await saveOrderToGitHub(order);
-
-  res.status(201).json({
-    success: true,
-    orderId: order.id,
-  });
 });
 
-// Health
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+// POST new order
+app.post('/api/orders', (req, res) => {
+  try {
+    const order = req.body;
+    
+    if (!order || typeof order !== 'object') {
+      return res.status(400).json({ error: 'Invalid order data' });
+    }
+    
+    if (!order.id || !order.email || !Array.isArray(order.items) || !order.items.length) {
+      return res.status(400).json({ error: 'Invalid order data' });
+    }
+    
+    // Add default status if not provided
+    order.status = order.status || 'pending';
+    
+    // Add createdAt if not provided
+    if (!order.createdAt) {
+      order.createdAt = new Date().toISOString();
+    }
+    
+    const filename = `order-${order.id}.json`;
+    const filepath = path.join(ORDERS_DIR, filename);
+    
+    fs.writeFileSync(filepath, JSON.stringify(order, null, 2));
+    console.log(`Order saved to ${filepath}`);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Order received',
+      orderId: order.id
+    });
+  } catch (error) {
+    console.error('Error saving order:', error);
+    res.status(500).json({ error: 'Failed to save order' });
+  }
 });
 
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// PATCH update order status
+app.patch('/api/orders/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    if (!status || !['pending', 'processed'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status. Must be "pending" or "processed"' });
+    }
+    
+    const filename = `order-${id}.json`;
+    const filepath = path.join(ORDERS_DIR, filename);
+    
+    if (!fs.existsSync(filepath)) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    const order = JSON.parse(fs.readFileSync(filepath, 'utf8'));
+    order.status = status;
+    
+    fs.writeFileSync(filepath, JSON.stringify(order, null, 2));
+    console.log(`Order ${id} status updated to ${status}`);
+    
+    res.json({
+      success: true,
+      message: 'Order status updated'
+    });
+  } catch (error) {
+    console.error('Error updating order:', error);
+    res.status(500).json({ error: 'Failed to update order' });
+  }
+});
+
+// DELETE order
+app.delete('/api/orders/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const filename = `order-${id}.json`;
+    const filepath = path.join(ORDERS_DIR, filename);
+    
+    if (fs.existsSync(filepath)) {
+      fs.unlinkSync(filepath);
+      console.log(`Order ${id} deleted`);
+      res.json({ success: true, message: 'Order deleted' });
+    } else {
+      res.status(404).json({ error: 'Order not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting order:', error);
+    res.status(500).json({ error: 'Failed to delete order' });
+  }
+});
+
+// ==================== GITHUB SYNC ====================
+
+// Optional: Sync to GitHub after changes
+function syncToGitHub() {
+  try {
+    const { execSync } = require('child_process');
+    
+    // Check if we're in a git repository
+    const isGitRepo = execSync('git rev-parse --is-inside-work-tree', { encoding: 'utf8' }).trim() === 'true';
+    
+    if (isGitRepo) {
+      execSync('git add orders/ products/', { encoding: 'utf8' });
+      execSync('git commit -m "Auto-sync: Update orders and products" --allow-empty', { encoding: 'utf8' });
+      execSync('git push', { encoding: 'utf8' });
+      console.log('Changes synced to GitHub');
+    }
+  } catch (error) {
+    console.log('GitHub sync skipped (not a git repository or git not configured)');
+  }
+}
+
+// ==================== START SERVER ====================
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
+  console.log(`Orders directory: ${ORDERS_DIR}`);
+  console.log(`Products directory: ${PRODUCTS_DIR}`);
+  console.log(`API endpoints:`);
+  console.log(`  GET    /api/products`);
+  console.log(`  POST   /api/products`);
+  console.log(`  PUT    /api/products/:id`);
+  console.log(`  DELETE /api/products/:id`);
+  console.log(`  GET    /api/orders`);
+  console.log(`  POST   /api/orders`);
+  console.log(`  PATCH  /api/orders/:id`);
+  console.log(`  DELETE /api/orders/:id`);
 });
