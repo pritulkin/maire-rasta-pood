@@ -15,6 +15,15 @@ app.use(cors({
   allowedHeaders: ['Content-Type']
 }));
 app.use(express.json({ limit: '50mb' }));
+// #region agent log
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    const bodyKeys = req.body && typeof req.body === 'object' ? Object.keys(req.body) : [];
+    fetch('http://127.0.0.1:7762/ingest/feb180af-38b5-451b-a0d3-cd3b48e14c4b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'978fb6'},body:JSON.stringify({sessionId:'978fb6',location:'server.js:apiMiddleware',message:'API request received',data:{method:req.method,path:req.path,bodyKeys,contentType:req.headers['content-type']||null},timestamp:Date.now(),hypothesisId:'B,C,E'})}).catch(()=>{});
+  }
+  next();
+});
+// #endregion
 app.use(express.static(__dirname));
 
 // Kataloogide asukohad
@@ -213,6 +222,9 @@ app.post('/api/orders', (req, res) => {
     const filepath = path.join(ORDERS_DIR, filename);
     
     fs.writeFileSync(filepath, JSON.stringify(order, null, 2));
+    // #region agent log
+    fetch('http://127.0.0.1:7762/ingest/feb180af-38b5-451b-a0d3-cd3b48e14c4b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'978fb6'},body:JSON.stringify({sessionId:'978fb6',location:'server.js:POST orders',message:'order JSON written',data:{filepath,orderId:order.id,fileExists:fs.existsSync(filepath)},timestamp:Date.now(),hypothesisId:'C,D'})}).catch(()=>{});
+    // #endregion
     console.log(`Order saved to ${filepath}`);
     
     syncToGitHub();

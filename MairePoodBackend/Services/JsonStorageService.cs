@@ -30,8 +30,27 @@ namespace MairePoodBackend.Services
         }
 
         // Products
+        private void AgentLog(string location, string message, object data, string hypothesisId)
+        {
+            try
+            {
+                var payload = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    sessionId = "978fb6",
+                    location,
+                    message,
+                    data,
+                    timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                    hypothesisId
+                });
+                File.AppendAllText(Path.Combine(Directory.GetCurrentDirectory(), "..", "debug-978fb6.log"), payload + Environment.NewLine);
+            }
+            catch { }
+        }
+
         public List<Product> GetAllProducts()
         {
+            AgentLog("JsonStorageService.GetAllProducts", "reading products dir", new { productsDir = _productsDir, exists = Directory.Exists(_productsDir) }, "D");
             var products = new List<Product>();
             if (!Directory.Exists(_productsDir))
                 return products;
@@ -132,6 +151,7 @@ namespace MairePoodBackend.Services
             var filePath = Path.Combine(_ordersDir, $"order-{order.Id}.json");
             var json = JsonSerializer.Serialize(order, _jsonOptions);
             File.WriteAllText(filePath, json);
+            AgentLog("JsonStorageService.SaveOrder", "order JSON written", new { filePath, orderId = order.Id, fileExists = File.Exists(filePath) }, "C,D");
         }
 
         public void DeleteOrder(string id)

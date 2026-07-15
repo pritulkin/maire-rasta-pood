@@ -33,6 +33,9 @@ const API_BASE = (() => {
 })();
 
 console.log('API_BASE:', API_BASE);
+// #region agent log
+fetch('http://127.0.0.1:7762/ingest/feb180af-38b5-451b-a0d3-cd3b48e14c4b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'978fb6'},body:JSON.stringify({sessionId:'978fb6',location:'app.js:API_BASE',message:'API_BASE resolved',data:{apiBase:API_BASE,windowApiUrl:typeof window!=='undefined'?window.API_URL:null,hostname:typeof window!=='undefined'?window.location.hostname:null,protocol:typeof window!=='undefined'?window.location.protocol:null},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+// #endregion
 
 const defaultProducts = [
   {
@@ -68,7 +71,11 @@ async function loadProducts() {
   if (API_BASE) {
     try {
       // Try to fetch from backend first
-      const response = await fetch(`${API_BASE}/api/Products`);
+      const productsUrl = `${API_BASE}/api/Products`;
+      const response = await fetch(productsUrl);
+      // #region agent log
+      fetch('http://127.0.0.1:7762/ingest/feb180af-38b5-451b-a0d3-cd3b48e14c4b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'978fb6'},body:JSON.stringify({sessionId:'978fb6',location:'app.js:loadProducts',message:'products fetch result',data:{url:productsUrl,status:response.status,ok:response.ok,contentType:response.headers.get('content-type')},timestamp:Date.now(),hypothesisId:'A,B'})}).catch(()=>{});
+      // #endregion
       if (response.ok) {
         const products = await response.json();
         if (products.length > 0) {
@@ -239,6 +246,9 @@ async function handleCheckout(event) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(order),
     });
+    // #region agent log
+    fetch('http://127.0.0.1:7762/ingest/feb180af-38b5-451b-a0d3-cd3b48e14c4b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'978fb6'},body:JSON.stringify({sessionId:'978fb6',location:'app.js:checkout',message:'order POST result',data:{endpoint,status:response.status,ok:response.ok,contentType:response.headers.get('content-type'),orderId:order.id},timestamp:Date.now(),hypothesisId:'A,C'})}).catch(()=>{});
+    // #endregion
     console.log('Response status:', response.status);
     console.log('Response ok:', response.ok);
     
