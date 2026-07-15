@@ -2,13 +2,12 @@
   "name": "mairepood",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "description": "Maire Rästa käsitöö e‑pood koos Node/Express backendiga",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "start:10000": "PORT=10000 node server.js",
+    "start:10000": "set PORT=10000&& node server.js",
     "heroku-start": "node server.js"
   },
   "dependencies": {

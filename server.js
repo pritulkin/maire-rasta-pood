@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 10000;
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
-app.use(express.static('public'));
+app.use(express.static(__dirname));
 
 // Kataloogide asukohad
 const ORDERS_DIR = path.join(__dirname, 'orders');
