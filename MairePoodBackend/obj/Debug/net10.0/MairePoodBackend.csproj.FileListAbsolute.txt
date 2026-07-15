@@ -32,3 +32,9 @@ C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\refint\MairePo
 C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\MairePoodBackend.pdb
 C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\MairePoodBackend.genruntimeconfig.cache
 C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\ref\MairePoodBackend.dll
+C:\New folder\maire-rasta-pood\MairePoodBackend\bin\Debug\net10.0\MairePoodBackend.staticwebassets.runtime.json
+C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\compressed\8vklz83nix-{0}-hfvkuxsnw7-hfvkuxsnw7.gz
+C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\compressed\yan6uencgj-{0}-qrqv4x0wvp-qrqv4x0wvp.gz
+C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\compressed\eka1enuo97-{0}-h70u53b4tk-h70u53b4tk.gz
+C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\compressed\h3pk0g0goa-{0}-goj4ylkb9q-goj4ylkb9q.gz
+C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\compressed\kz600lduh3-{0}-hn1z09nkhr-hn1z09nkhr.gz

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="et">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin | Maire Rästa</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="admin-lock" class="lock-screen">
+      <div class="lock-card">
+        <p class="eyebrow">Ligipääs</p>
+        <h1>Administreerimisala</h1>
+        <p>Sisesta salasõna, et jätkata.</p>
+        <label>
+          Salasõna
+          <input type="password" id="admin-password" />
+        </label>
+        <button class="button primary" id="unlock-admin" type="button">Ava</button>
+        <p id="unlock-error" class="status-text"></p>
+      </div>
+    </div>
+
+    <div id="admin-page" class="admin-page hidden">
+      <header class="site-header">
+        <div class="container nav-bar">
+          <a href="index.html" class="brand">Maire Rästa</a>
+          <nav class="main-nav">
+            <a href="index.html">Pood</a>
+            <a href="admin.html">Admin</a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="container section-space">
+        <div class="section-title">
+          <p class="eyebrow">Halda kaupu</p>
+          <h1>Administreerimine</h1>
+        </div>
+
+        <div class="admin-layout">
+          <form id="product-form" class="card form-card">
+            <h2>Lisa või muuda toodet</h2>
+            <input type="hidden" id="product-id" />
+            <label>
+              Nimi
+              <input type="text" id="product-name" required />
+            </label>
+            <label>
+              Kirjeldus
+              <textarea id="product-description" rows="3" required></textarea>
+            </label>
+            <label>
+              Hind (€)
+              <input type="number" id="product-price" step="0.01" min="0" required />
+            </label>
+            <label>
+              Laoseis
+              <input type="number" id="product-stock" min="0" required />
+            </label>
+            <label>
+              Kategooria
+              <input type="text" id="product-category" required />
+            </label>
+            <label>
+              Pilt (valikuline)
+              <input type="file" id="product-image" accept="image/*" />
+            </label>
+            <div class="button-row image-actions">
+              <button class="button secondary" type="button" id="replace-image">Asenda pilt</button>
+              <button class="button secondary" type="button" id="remove-image">Eemalda pilt</button>
+            </div>
+            <img id="product-image-preview" class="image-preview" alt="Pildi eelvaade" />
+            <div class="button-row">
+              <button class="button primary" type="submit">Salvesta</button>
+              <button class="button secondary" type="button" id="cancel-edit">Tühista</button>
+            </div>
+          </form>
+
+          <div class="admin-stack">
+            <div class="card table-card">
+              <h2>Tooted</h2>
+              <div id="product-list" class="admin-list"></div>
+            </div>
+
+            <div class="card table-card">
+              <h2>Tellimused</h2>
+              <div id="order-list" class="admin-list"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="admin.js"></script>
+  </body>
+</html>

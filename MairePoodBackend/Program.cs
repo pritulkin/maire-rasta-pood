@@ -22,6 +22,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline
 app.UseCors("AllowAll");
 app.UseHttpsRedirection();
+app.UseStaticFiles(); // Serve static files from wwwroot
 app.MapControllers();
 
 app.Run();

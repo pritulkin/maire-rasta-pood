@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="et">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maire Rästa | Kunstiesemed</title>
+    <meta
+      name="description"
+      content="Maire Rästa kunstiesemete veebipood — isikupärased tööd ja lihtne administreerimine."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav-bar">
+        <a href="index.html" class="brand">Maire Rästa</a>
+        <nav class="main-nav">
+          <a href="#tooted">Tooted</a>
+          <a href="#ostukorv">Ostukorv</a>
+          <a href="admin.html">Admin</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <p class="eyebrow">Kunsti ja emotsiooni kohtumispaik</p>
+            <h1>Kunstiesemed, mis toovad koju sooje hetki.</h1>
+            <p class="hero-copy">
+              Avasta Maire Rästa käsitööna valminud töid — vaasid, kausid ja
+              väikesed kunstiesemed, mis muudavad iga ruumi isikupäraseks.
+            </p>
+            <a class="button primary" href="#tooted">Vaata tooteid</a>
+          </div>
+          <div class="hero-card">
+            <h2>Praegu müügil</h2>
+            <ul>
+              <li>Originaalkäsitöö</li>
+              <li>Piiratud tiraažiga</li>
+              <li>Kiire kohaletoimetamine</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="tooted" class="container section-space">
+        <div class="section-title">
+          <p class="eyebrow">Valitud kollektsioon</p>
+          <h2>Artiklid, mida armastada</h2>
+        </div>
+        <div id="product-grid" class="product-grid"></div>
+      </section>
+
+      <section id="ostukorv" class="container section-space cart-section">
+        <div class="section-title">
+          <p class="eyebrow">Sinu valik</p>
+          <h2>Ostukorv</h2>
+        </div>
+        <div class="cart-layout">
+          <div id="cart-items" class="cart-items"></div>
+          <form id="checkout-form" class="checkout-card">
+            <h3>Tellimuse andmed</h3>
+            <label>
+              Nimi
+              <input type="text" name="name" required />
+            </label>
+            <label>
+              E-post
+              <input type="email" name="email" required />
+            </label>
+            <label>
+              Lisa sõnum
+              <textarea name="message" rows="3"></textarea>
+            </label>
+            <button class="button primary" type="submit">Esita tellimus</button>
+            <p id="checkout-status" class="status-text"></p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-row">
+        <span>© 2026 Maire Rästa</span>
+        <span>mairerasta.eu</span>
+      </div>
+    </footer>
+<script>
+  window.API_URL = 'render.com';
+</script>
+    <script src="app.js"></script>
+  </body>
+</html>
