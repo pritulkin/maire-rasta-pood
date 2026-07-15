@@ -68,7 +68,7 @@ async function loadProducts() {
   if (API_BASE) {
     try {
       // Try to fetch from backend first
-      const response = await fetch(`${API_BASE}/api/products`);
+      const response = await fetch(`${API_BASE}/api/Products`);
       if (response.ok) {
         const products = await response.json();
         if (products.length > 0) {

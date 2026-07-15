@@ -62,7 +62,7 @@ function saveProducts(products) {
 async function fetchProductsFromBackend() {
   try {
     if (API_BASE) {
-      const response = await fetch(`${API_BASE}/api/products`);
+      const response = await fetch(`${API_BASE}/api/Products`);
       if (!response.ok) {
         throw new Error('Failed to load products from backend');
       }
@@ -338,7 +338,7 @@ productForm.addEventListener('submit', async (event) => {
 
   try {
     if (API_BASE) {
-      const url = editingProductId ? `${API_BASE}/api/products/${id}` : `${API_BASE}/api/products`;
+      const url = editingProductId ? `${API_BASE}/api/Products/${id}` : `${API_BASE}/api/Products`;
       const method = editingProductId ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -382,7 +382,7 @@ productList.addEventListener('click', async (event) => {
 
     try {
       if (API_BASE) {
-        const response = await fetch(`${API_BASE}/api/products/${id}`, { method: 'DELETE' });
+        const response = await fetch(`${API_BASE}/api/Products/${id}`, { method: 'DELETE' });
         if (!response.ok) throw new Error('Kustutamine backendis ebaõnnestus');
       }
 
