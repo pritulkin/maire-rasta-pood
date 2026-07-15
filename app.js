@@ -255,18 +255,13 @@ async function handleCheckout(event) {
       throw new Error(`Server error ${response.status}: ${details || response.statusText}`);
     }
 
-    saveOrderLocally(order);
     localStorage.removeItem(CART_KEY);
     form.reset();
     await renderCart();
     statusEl.textContent = `Tellimus salvestatud! Kinnitus saadetakse ${order.email}.`;
   } catch (error) {
-    console.warn('Backend order submission unavailable, saving locally instead:', error);
-    saveOrderLocally(order);
-    localStorage.removeItem(CART_KEY);
-    form.reset();
-    await renderCart();
-    statusEl.textContent = `Tellimus salvestati kohalikult. Kinnitus saadetakse ${order.email}.`;
+    console.error('Order submission error:', error);
+    statusEl.textContent = `Viga tellimuse saatmisel: ${error.message}. Palun proovi uuesti.`;
   }
 }
 
