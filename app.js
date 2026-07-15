@@ -229,7 +229,7 @@ async function handleCheckout(event) {
   statusEl.textContent = 'Tellimusest saadakse teade...';
 
   try {
-    const endpoint = API_BASE ? `${API_BASE}/api/orders` : '/api/orders';
+    const endpoint = API_BASE ? `${API_BASE}/api/Orders` : '/api/Orders';
     console.log('API_BASE:', API_BASE);
     console.log('Sending order to:', endpoint);
     console.log('Order data:', JSON.stringify(order, null, 2));

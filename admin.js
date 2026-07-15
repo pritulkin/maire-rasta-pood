@@ -81,7 +81,7 @@ async function fetchProductsFromBackend() {
 async function fetchOrdersFromBackend() {
   try {
     if (API_BASE) {
-      const response = await fetch(`${API_BASE}/api/orders`);
+      const response = await fetch(`${API_BASE}/api/Orders`);
       if (!response.ok) {
         throw new Error('Failed to load orders from backend');
       }
@@ -102,7 +102,7 @@ async function saveOrderToBackend(order) {
   if (!API_BASE) return false;
   
   try {
-    const response = await fetch(`${API_BASE}/api/orders`, {
+    const response = await fetch(`${API_BASE}/api/Orders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(order)
@@ -124,7 +124,7 @@ async function updateOrderStatusInBackend(orderId, newStatus) {
   if (!API_BASE) return false;
   
   try {
-    const response = await fetch(`${API_BASE}/api/orders/${orderId}`, {
+    const response = await fetch(`${API_BASE}/api/Orders/${orderId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus })
@@ -142,7 +142,7 @@ async function deleteOrderFromBackend(orderId) {
   if (!API_BASE) return false;
   
   try {
-    const response = await fetch(`${API_BASE}/api/orders/${orderId}`, {
+    const response = await fetch(`${API_BASE}/api/Orders/${orderId}`, {
       method: 'DELETE'
     });
     
@@ -409,7 +409,7 @@ orderList.addEventListener('click', async (event) => {
       // Laeme tellimused backendist
       let orders = [];
       if (API_BASE) {
-        const response = await fetch(`${API_BASE}/api/orders`);
+        const response = await fetch(`${API_BASE}/api/Orders`);
         orders = await response.json();
       } else {
         orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
