@@ -29,6 +29,12 @@ const API_BASE = (() => {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
+    
+    // Kui avad otse failist, kasuta localhost:10000
+    if (protocol === 'file:') {
+      return 'http://localhost:10000';
+    }
+    
     if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]') {
       return `${protocol}//${hostname}:10000`;
     }
@@ -38,8 +44,11 @@ const API_BASE = (() => {
     }
   }
 
-  return '';
+  return 'http://localhost:10000';
 })();
+
+console.log('Admin API_BASE:', API_BASE);
+console.log('Window protocol:', window.location.protocol);
 
 function loadProducts() {
   return JSON.parse(localStorage.getItem(PRODUCTS_KEY) || '[]');

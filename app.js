@@ -13,6 +13,12 @@ const API_BASE = (() => {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
+    
+    // Kui avad otse failist, kasuta localhost:10000
+    if (protocol === 'file:') {
+      return 'http://localhost:10000';
+    }
+    
     if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]') {
       return `${protocol}//${hostname}:10000`;
     }
@@ -22,8 +28,10 @@ const API_BASE = (() => {
     }
   }
 
-  return '';
+  return 'http://localhost:10000';
 })();
+
+console.log('API_BASE:', API_BASE);
 
 const defaultProducts = [
   {
@@ -221,11 +229,15 @@ async function handleCheckout(event) {
 
   try {
     const endpoint = API_BASE ? `${API_BASE}/api/orders` : '/api/orders';
+    console.log('Sending order to:', endpoint);
+    console.log('Order data:', order);
+    
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(order),
     });
+    console.log('Response status:', response.status);
 
     if (!response.ok) {
       let details = '';
