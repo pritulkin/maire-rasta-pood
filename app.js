@@ -23,10 +23,9 @@ const API_BASE = (() => {
       return `${protocol}//${hostname}:10000`;
     }
 
-    // Kui kasutad IP-aadressi (nt telefonilt), kasuta sama hosti porti 10000
+    // Kui kasutad IP-aadressi (nt telefonilt), kasuta sama origin
     if (protocol === 'http:' || protocol === 'https:') {
-      const port = window.location.port || '10000';
-      return `${protocol}//${hostname}:${port}`;
+      return '';
     }
   }
 
@@ -37,7 +36,7 @@ console.log('API_BASE:', API_BASE);
 
 const defaultProducts = [
   {
-    id: crypto.randomUUID(),
+    id: 'product-default-1',
     name: 'Vaas',
     description: 'Dekoratiivne vaas.',
     price: 100,
@@ -46,7 +45,7 @@ const defaultProducts = [
     image: 'img/image1.jpg',
   },
   {
-    id: crypto.randomUUID(),
+    id: 'product-default-2',
     name: 'Vaas',
     description: 'Vaas lilledele.',
     price: 70,
@@ -55,7 +54,7 @@ const defaultProducts = [
     image: 'img/image2.jpg',
   },
   {
-    id: crypto.randomUUID(),
+    id: 'product-default-3',
     name: 'Pudel',
     description: 'Punutud pudelid.',
     price: 100,
@@ -215,7 +214,7 @@ async function handleCheckout(event) {
   }
 
   const order = {
-    id: crypto.randomUUID(),
+    id: 'order-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
     name: form.name.value.trim(),
     email: form.email.value.trim(),
     message: form.message.value.trim(),
@@ -231,8 +230,9 @@ async function handleCheckout(event) {
 
   try {
     const endpoint = API_BASE ? `${API_BASE}/api/orders` : '/api/orders';
+    console.log('API_BASE:', API_BASE);
     console.log('Sending order to:', endpoint);
-    console.log('Order data:', order);
+    console.log('Order data:', JSON.stringify(order, null, 2));
     
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -240,6 +240,10 @@ async function handleCheckout(event) {
       body: JSON.stringify(order),
     });
     console.log('Response status:', response.status);
+    console.log('Response ok:', response.ok);
+    
+    const responseText = await response.text();
+    console.log('Response body:', responseText);
 
     if (!response.ok) {
       let details = '';

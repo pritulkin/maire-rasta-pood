@@ -9,7 +9,11 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type']
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(__dirname));
 
@@ -184,13 +188,18 @@ app.get('/api/orders', (req, res) => {
 // POST: Uus tellimus
 app.post('/api/orders', (req, res) => {
   try {
+    console.log('POST /api/orders received');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    
     const order = req.body;
     
     if (!order || typeof order !== 'object') {
+      console.log('Invalid order data: not an object');
       return res.status(400).json({ error: 'Invalid order data' });
     }
     
     if (!order.id || !order.email || !Array.isArray(order.items) || !order.items.length) {
+      console.log('Invalid order data: missing required fields', { id: order.id, email: order.email, items: order.items });
       return res.status(400).json({ error: 'Invalid order data' });
     }
     

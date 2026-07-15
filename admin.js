@@ -39,10 +39,9 @@ const API_BASE = (() => {
       return `${protocol}//${hostname}:10000`;
     }
 
-    // Kui kasutad IP-aadressi (nt telefonilt), kasuta sama hosti porti 10000
+    // Kui kasutad IP-aadressi (nt telefonilt), kasuta sama origin
     if (protocol === 'http:' || protocol === 'https:') {
-      const port = window.location.port || '10000';
-      return `${protocol}//${hostname}:${port}`;
+      return '';
     }
   }
 

@@ -1,0 +1,6 @@
+@MairePoodBackend_HostAddress = http://localhost:5164
+
+GET {{MairePoodBackend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
