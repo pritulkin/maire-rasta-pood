@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "targets": {
     "net10.0": {
       "Microsoft.AspNetCore.OpenApi/10.0.1": {
@@ -576,11 +576,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\New folder\\maire-rasta-pood\\MairePoodBackend\\MairePoodBackend.csproj",
+      "projectUniqueName": "c:\\New folder\\maire-rasta-pood\\MairePoodBackend\\MairePoodBackend.csproj",
       "projectName": "MairePoodBackend",
-      "projectPath": "C:\\New folder\\maire-rasta-pood\\MairePoodBackend\\MairePoodBackend.csproj",
+      "projectPath": "c:\\New folder\\maire-rasta-pood\\MairePoodBackend\\MairePoodBackend.csproj",
       "packagesPath": "C:\\Users\\Priit\\.nuget\\packages\\",
-      "outputPath": "C:\\New folder\\maire-rasta-pood\\MairePoodBackend\\obj\\",
+      "outputPath": "c:\\New folder\\maire-rasta-pood\\MairePoodBackend\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Priit\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -593,6 +593,7 @@
       },
       "frameworks": {
         "net10.0": {
+          "framework": "net10.0",
           "targetAlias": "net10.0",
           "projectReferences": {}
         }
@@ -607,10 +608,11 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.100"
+      "SdkAnalysisLevel": "10.0.300"
     },
     "frameworks": {
       "net10.0": {
+        "framework": "net10.0",
         "targetAlias": "net10.0",
         "dependencies": {
           "Microsoft.AspNetCore.OpenApi": {
@@ -641,7 +643,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.302/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",
