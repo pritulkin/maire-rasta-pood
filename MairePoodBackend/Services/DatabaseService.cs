@@ -75,12 +75,10 @@ namespace MairePoodBackend.Services
 
         public async Task DeleteOrderAsync(string id)
         {
-            var order = await _context.Orders.FindAsync(id);
-            if (order != null)
-            {
-                _context.Orders.Remove(order);
-                await _context.SaveChangesAsync();
-            }
+            // Delete order items first to avoid foreign key constraint
+            await _context.Database.ExecuteSqlRawAsync("DELETE FROM OrderItem WHERE OrderId = {0}", id);
+            // Then delete the order
+            await _context.Database.ExecuteSqlRawAsync("DELETE FROM Orders WHERE Id = {0}", id);
         }
 
         public async Task UpdateOrderStatusAsync(string id, string status)

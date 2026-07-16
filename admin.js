@@ -271,6 +271,8 @@ async function unlockAdmin() {
     });
     
     console.log('Auth response status:', response.status);
+    console.log('Auth response ok:', response.ok);
+    
     const result = await response.json();
     console.log('Auth response:', result);
     
@@ -288,7 +290,9 @@ async function unlockAdmin() {
     alert('Vale parool!');
   } catch (error) {
     console.error('Login error:', error);
-    alert('Viga sisselogimisel');
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    alert('Viga sisselogimisel: ' + error.message);
   }
 
   passwordInput.value = '';
