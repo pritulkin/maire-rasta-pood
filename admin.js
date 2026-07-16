@@ -279,8 +279,13 @@ async function unlockAdmin() {
     console.log('Auth response ok:', response.ok);
     console.log('Auth response headers:', Object.fromEntries(response.headers.entries()));
     
-    const result = await response.json();
-    console.log('Auth response:', result);
+    const responseText = await response.text();
+    console.log('Auth response text:', responseText);
+    console.log('Auth response text length:', responseText.length);
+    console.log('Auth response text starts with:', responseText.substring(0, 100));
+    
+    const result = JSON.parse(responseText);
+    console.log('Auth response parsed:', result);
     
     if (result.success) {
       sessionStorage.setItem(ACCESS_KEY, 'true');
