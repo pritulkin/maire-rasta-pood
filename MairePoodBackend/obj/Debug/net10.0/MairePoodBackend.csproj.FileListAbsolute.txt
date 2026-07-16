@@ -67,6 +67,6 @@ C:\New folder\maire-rasta-pood\MairePoodBackend\bin\Debug\net10.0\runtimes\win-a
 C:\New folder\maire-rasta-pood\MairePoodBackend\bin\Debug\net10.0\runtimes\win-x64\native\e_sqlite3.dll
 C:\New folder\maire-rasta-pood\MairePoodBackend\bin\Debug\net10.0\runtimes\win-x86\native\e_sqlite3.dll
 C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\compressed\h3pk0g0goa-{0}-vxh9vjny2c-vxh9vjny2c.gz
-C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\compressed\8vklz83nix-{0}-5lkcudb9nb-5lkcudb9nb.gz
-C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\compressed\yan6uencgj-{0}-19i45crq57-19i45crq57.gz
 C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\compressed\eka1enuo97-{0}-7aiql841qw-7aiql841qw.gz
+C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\compressed\8vklz83nix-{0}-a1qrhrv2j4-a1qrhrv2j4.gz
+C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\compressed\yan6uencgj-{0}-xkgodpiukw-xkgodpiukw.gz
