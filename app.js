@@ -97,31 +97,53 @@ async function loadProducts() {
   }
 
   // Fallback to localStorage
-  const raw = localStorage.getItem(PRODUCTS_KEY);
-  if (!raw) {
-    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(defaultProducts));
+  try {
+    const raw = localStorage.getItem(PRODUCTS_KEY);
+    if (!raw) {
+      localStorage.setItem(PRODUCTS_KEY, JSON.stringify(defaultProducts));
+      return defaultProducts;
+    }
+    return JSON.parse(raw);
+  } catch (error) {
+    console.error('localStorage error:', error);
     return defaultProducts;
   }
-  return JSON.parse(raw);
 }
 
 function saveProducts(products) {
-  localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+  try {
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+  } catch (error) {
+    console.error('localStorage error:', error);
+  }
 }
 
 function loadCart() {
-  const raw = localStorage.getItem(CART_KEY);
-  return raw ? JSON.parse(raw) : {};
+  try {
+    const raw = localStorage.getItem(CART_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (error) {
+    console.error('localStorage error:', error);
+    return {};
+  }
 }
 
 function saveCart(cart) {
-  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  try {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  } catch (error) {
+    console.error('localStorage error:', error);
+  }
 }
 
 function saveOrderLocally(order) {
-  const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
-  orders.push(order);
-  localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+  try {
+    const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+    orders.push(order);
+    localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+  } catch (error) {
+    console.error('localStorage error:', error);
+  }
 }
 
 function currency(value) {

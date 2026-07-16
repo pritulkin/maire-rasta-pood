@@ -1,7 +1,7 @@
 const PRODUCTS_KEY = 'mairepood.products';
 const ORDERS_KEY = 'mairepood.orders';
 const ACCESS_KEY = 'mairepood.adminAccess';
-const ADMIN_PASSWORD = 'maire2026';
+// Admin password is now handled server-side for security
 const productForm = document.getElementById('product-form');
 const productList = document.getElementById('product-list');
 const orderList = document.getElementById('order-list');
@@ -247,17 +247,32 @@ function showLockScreen() {
 }
 
 async function unlockAdmin() {
-  if ((passwordInput?.value || '') === ADMIN_PASSWORD) {
-    sessionStorage.setItem(ACCESS_KEY, 'true');
-    showAdminArea();
-    await fetchProductsFromBackend();
-    await fetchOrdersFromBackend();
-    renderProducts();
-    await renderOrders();
-    return;
+  try {
+    const response = await fetch(`${API_BASE}/api/Auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: passwordInput?.value || '' })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      sessionStorage.setItem(ACCESS_KEY, 'true');
+      showAdminArea();
+      await fetchProductsFromBackend();
+      await fetchOrdersFromBackend();
+      renderProducts();
+      await renderOrders();
+      passwordInput.value = '';
+      return;
+    }
+
+    alert('Vale parool!');
+  } catch (error) {
+    console.error('Login error:', error);
+    alert('Viga sisselogimisel');
   }
 
-  unlockError.textContent = 'Vale salasõna.';
   passwordInput.value = '';
   passwordInput.focus();
 }
