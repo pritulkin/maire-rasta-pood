@@ -142,9 +142,15 @@ async function deleteOrderFromBackend(orderId) {
   if (!API_BASE) return false;
   
   try {
-    const response = await fetch(`${API_BASE}/api/Orders/${orderId}`, {
+    const url = `${API_BASE}/api/Orders/${orderId}`;
+    console.log('Delete order URL:', url);
+    
+    const response = await fetch(url, {
       method: 'DELETE'
     });
+    
+    console.log('Delete order response status:', response.status);
+    console.log('Delete order response ok:', response.ok);
     
     return response.ok;
   } catch (error) {
@@ -205,6 +211,10 @@ async function renderOrders() {
     row.className = 'admin-item';
     const itemsText = order.items.map((item) => `${item.name} × ${item.quantity}`).join(', ');
     const statusLabel = order.status === 'processed' ? 'Töödeldud' : 'Ootel';
+    
+    console.log('Rendering order:', order);
+    console.log('Order ID:', order.id);
+    
     row.innerHTML = `
       <div>
         <strong>${order.name}</strong>
@@ -247,14 +257,22 @@ function showLockScreen() {
 }
 
 async function unlockAdmin() {
+  console.log('API_BASE:', API_BASE);
+  console.log('Password:', passwordInput?.value || '');
+  
   try {
-    const response = await fetch(`${API_BASE}/api/Auth/login`, {
+    const url = `${API_BASE}/api/Auth/login`;
+    console.log('Auth URL:', url);
+    
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: passwordInput?.value || '' })
     });
     
+    console.log('Auth response status:', response.status);
     const result = await response.json();
+    console.log('Auth response:', result);
     
     if (result.success) {
       sessionStorage.setItem(ACCESS_KEY, 'true');
