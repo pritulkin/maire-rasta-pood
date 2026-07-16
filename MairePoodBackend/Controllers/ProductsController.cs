@@ -8,57 +8,59 @@ namespace MairePoodBackend.Controllers
     [Route("api/[controller]")]
     public class ProductsController : ControllerBase
     {
-        private readonly JsonStorageService _storage;
+        private readonly DatabaseService _storage;
 
-        public ProductsController(JsonStorageService storage)
+        public ProductsController(DatabaseService storage)
         {
             _storage = storage;
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Product>> GetAll()
+        public async Task<ActionResult<IEnumerable<Product>>> GetAll()
         {
-            var products = _storage.GetAllProducts();
+            var products = await _storage.GetAllProductsAsync();
             return Ok(products);
         }
 
         [HttpGet("{id}")]
-        public ActionResult<Product> Get(string id)
+        public async Task<ActionResult<Product>> Get(string id)
         {
-            var product = _storage.GetProduct(id);
+            var product = await _storage.GetProductAsync(id);
             if (product == null)
                 return NotFound();
             return Ok(product);
         }
 
         [HttpPost]
-        public ActionResult<Product> Create([FromBody] Product product)
+        public async Task<ActionResult<Product>> Create([FromBody] Product product)
         {
             if (string.IsNullOrEmpty(product.Id))
                 return BadRequest("Product ID is required");
 
-            _storage.SaveProduct(product);
+            await _storage.SaveProductAsync(product);
             return CreatedAtAction(nameof(Get), new { id = product.Id }, product);
         }
 
         [HttpPut("{id}")]
-        public ActionResult Update(string id, [FromBody] Product product)
+        public async Task<ActionResult> Update(string id, [FromBody] Product product)
         {
-            if (_storage.GetProduct(id) == null)
+            var existing = await _storage.GetProductAsync(id);
+            if (existing == null)
                 return NotFound();
 
             product.Id = id;
-            _storage.SaveProduct(product);
+            await _storage.SaveProductAsync(product);
             return Ok(product);
         }
 
         [HttpDelete("{id}")]
-        public ActionResult Delete(string id)
+        public async Task<ActionResult> Delete(string id)
         {
-            if (_storage.GetProduct(id) == null)
+            var existing = await _storage.GetProductAsync(id);
+            if (existing == null)
                 return NotFound();
 
-            _storage.DeleteProduct(id);
+            await _storage.DeleteProductAsync(id);
             return NoContent();
         }
     }

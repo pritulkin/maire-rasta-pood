@@ -8,31 +8,31 @@ namespace MairePoodBackend.Controllers
     [Route("api/[controller]")]
     public class OrdersController : ControllerBase
     {
-        private readonly JsonStorageService _storage;
+        private readonly DatabaseService _storage;
 
-        public OrdersController(JsonStorageService storage)
+        public OrdersController(DatabaseService storage)
         {
             _storage = storage;
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Order>> GetAll()
+        public async Task<ActionResult<IEnumerable<Order>>> GetAll()
         {
-            var orders = _storage.GetAllOrders();
+            var orders = await _storage.GetAllOrdersAsync();
             return Ok(orders);
         }
 
         [HttpGet("{id}")]
-        public ActionResult<Order> Get(string id)
+        public async Task<ActionResult<Order>> Get(string id)
         {
-            var order = _storage.GetOrder(id);
+            var order = await _storage.GetOrderAsync(id);
             if (order == null)
                 return NotFound();
             return Ok(order);
         }
 
         [HttpPost]
-        public ActionResult<Order> Create([FromBody] Order order)
+        public async Task<ActionResult<Order>> Create([FromBody] Order order)
         {
             if (string.IsNullOrEmpty(order.Id))
                 return BadRequest("Order ID is required");
@@ -43,32 +43,32 @@ namespace MairePoodBackend.Controllers
             if (order.Items == null || order.Items.Count == 0)
                 return BadRequest("Order must have at least one item");
 
-            _storage.SaveOrder(order);
+            await _storage.SaveOrderAsync(order);
             return CreatedAtAction(nameof(Get), new { id = order.Id }, order);
         }
 
         [HttpPatch("{id}")]
-        public ActionResult UpdateStatus(string id, [FromBody] UpdateStatusRequest request)
+        public async Task<ActionResult> UpdateStatus(string id, [FromBody] UpdateStatusRequest request)
         {
-            var order = _storage.GetOrder(id);
+            var order = await _storage.GetOrderAsync(id);
             if (order == null)
                 return NotFound();
 
             if (request.Status != "pending" && request.Status != "processed")
                 return BadRequest("Invalid status. Must be 'pending' or 'processed'");
 
-            order.Status = request.Status;
-            _storage.SaveOrder(order);
+            await _storage.UpdateOrderStatusAsync(id, request.Status);
             return Ok(order);
         }
 
         [HttpDelete("{id}")]
-        public ActionResult Delete(string id)
+        public async Task<ActionResult> Delete(string id)
         {
-            if (_storage.GetOrder(id) == null)
+            var existing = await _storage.GetOrderAsync(id);
+            if (existing == null)
                 return NotFound();
 
-            _storage.DeleteOrder(id);
+            await _storage.DeleteOrderAsync(id);
             return NoContent();
         }
     }

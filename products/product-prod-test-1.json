@@ -1,9 +1,0 @@
-{
-  "id": "prod-test-1",
-  "name": "TestProd",
-  "description": "",
-  "price": 10,
-  "stock": 1,
-  "category": "x",
-  "image": ""
-}
