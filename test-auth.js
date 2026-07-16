@@ -1,11 +1,13 @@
 const http = require('http');
 
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'maire2026';
+
 function testAuth(password) {
   return new Promise((resolve, reject) => {
     const postData = JSON.stringify({ password });
     const options = {
-      hostname: 'localhost',
-      port: 10000,
+      hostname: process.env.API_HOST || 'localhost',
+      port: process.env.API_PORT || 10000,
       path: '/api/Auth/login',
       method: 'POST',
       headers: {
@@ -31,7 +33,7 @@ function testAuth(password) {
 (async () => {
   try {
     console.log('Testing correct password...');
-    const correct = await testAuth('maire2026');
+    const correct = await testAuth(ADMIN_PASSWORD);
     console.log(`Status: ${correct.status}, Body: ${correct.body}`);
 
     console.log('\nTesting wrong password...');
@@ -39,5 +41,6 @@ function testAuth(password) {
     console.log(`Status: ${wrong.status}, Body: ${wrong.body}`);
   } catch (error) {
     console.error('Error testing auth:', error);
+    process.exit(1);
   }
 })();

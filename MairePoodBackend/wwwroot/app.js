@@ -33,9 +33,6 @@ const API_BASE = (() => {
 })();
 
 console.log('API_BASE:', API_BASE);
-// #region agent log
-fetch('http://127.0.0.1:7762/ingest/feb180af-38b5-451b-a0d3-cd3b48e14c4b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'978fb6'},body:JSON.stringify({sessionId:'978fb6',location:'app.js:API_BASE',message:'API_BASE resolved',data:{apiBase:API_BASE,windowApiUrl:typeof window!=='undefined'?window.API_URL:null,hostname:typeof window!=='undefined'?window.location.hostname:null,protocol:typeof window!=='undefined'?window.location.protocol:null},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-// #endregion
 
 const defaultProducts = [
   {
