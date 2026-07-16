@@ -31,14 +31,13 @@ var app = builder.Build();
 // Configure the HTTP request pipeline
 app.UseCors("AllowAll");
 app.UseHttpsRedirection();
+app.UseRouting();
+app.MapControllers();
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath, "wwwroot")),
     RequestPath = ""
 });
-
-app.UseRouting();
-app.MapControllers();
 
 // Ensure database is created
 using (var scope = app.Services.CreateScope())
