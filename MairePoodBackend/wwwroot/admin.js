@@ -260,10 +260,14 @@ function showLockScreen() {
 async function unlockAdmin() {
   console.log('API_BASE:', API_BASE);
   console.log('Password:', passwordInput?.value || '');
+  console.log('Window location:', window.location.href);
+  console.log('Window hostname:', window.location.hostname);
+  console.log('Window protocol:', window.location.protocol);
   
   try {
     const url = `${API_BASE}/api/Auth/login`;
     console.log('Auth URL:', url);
+    console.log('Full URL:', new URL(url, window.location.href).href);
     
     const response = await fetch(url, {
       method: 'POST',
@@ -273,6 +277,7 @@ async function unlockAdmin() {
     
     console.log('Auth response status:', response.status);
     console.log('Auth response ok:', response.ok);
+    console.log('Auth response headers:', Object.fromEntries(response.headers.entries()));
     
     const result = await response.json();
     console.log('Auth response:', result);
@@ -293,6 +298,7 @@ async function unlockAdmin() {
     console.error('Login error:', error);
     console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
+    console.error('Error name:', error.name);
     alert('Viga sisselogimisel: ' + error.message);
   }
 
