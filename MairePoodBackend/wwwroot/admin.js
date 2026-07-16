@@ -35,11 +35,12 @@ const API_BASE = (() => {
       return 'http://localhost:10000';
     }
     
+    // Kui hostname on localhost, kasuta http://localhost:10000
     if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]') {
-      return `${protocol}//${hostname}:10000`;
+      return 'http://localhost:10000';
     }
 
-    // Kui kasutad IP-aadressi (nt telefonilt), kasuta sama origin
+    // Kui kasutad IP-aadressi või domeeni, kasuta sama origin (tühi string)
     if (protocol === 'http:' || protocol === 'https:') {
       return '';
     }
