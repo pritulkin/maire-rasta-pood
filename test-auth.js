@@ -1,6 +1,11 @@
 const http = require('http');
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'maire2026';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+if (!ADMIN_PASSWORD) {
+  console.error('Error: ADMIN_PASSWORD environment variable is required');
+  process.exit(1);
+}
 
 function testAuth(password) {
   return new Promise((resolve, reject) => {
