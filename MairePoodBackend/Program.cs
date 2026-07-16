@@ -37,6 +37,9 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = ""
 });
 
+app.UseRouting();
+app.MapControllers();
+
 // Ensure database is created
 using (var scope = app.Services.CreateScope())
 {
