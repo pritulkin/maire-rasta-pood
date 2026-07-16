@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\New folder\\maire-rasta-pood\\MairePoodBackend\\MairePoodBackend.csproj": {}
+    "C:\\New folder\\maire-rasta-pood\\MairePoodBackend\\MairePoodBackend.csproj": {}
   },
   "projects": {
-    "c:\\New folder\\maire-rasta-pood\\MairePoodBackend\\MairePoodBackend.csproj": {
+    "C:\\New folder\\maire-rasta-pood\\MairePoodBackend\\MairePoodBackend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\New folder\\maire-rasta-pood\\MairePoodBackend\\MairePoodBackend.csproj",
+        "projectUniqueName": "C:\\New folder\\maire-rasta-pood\\MairePoodBackend\\MairePoodBackend.csproj",
         "projectName": "MairePoodBackend",
-        "projectPath": "c:\\New folder\\maire-rasta-pood\\MairePoodBackend\\MairePoodBackend.csproj",
+        "projectPath": "C:\\New folder\\maire-rasta-pood\\MairePoodBackend\\MairePoodBackend.csproj",
         "packagesPath": "C:\\Users\\Priit\\.nuget\\packages\\",
-        "outputPath": "c:\\New folder\\maire-rasta-pood\\MairePoodBackend\\obj\\",
+        "outputPath": "C:\\New folder\\maire-rasta-pood\\MairePoodBackend\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Priit\\AppData\\Roaming\\NuGet\\NuGet.Config"
