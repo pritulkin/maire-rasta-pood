@@ -258,11 +258,13 @@ function showLockScreen() {
 }
 
 async function unlockAdmin() {
+  console.log('=== Admin Login Debug ===');
   console.log('API_BASE:', API_BASE);
   console.log('Password:', passwordInput?.value || '');
   console.log('Window location:', window.location.href);
   console.log('Window hostname:', window.location.hostname);
   console.log('Window protocol:', window.location.protocol);
+  console.log('Window origin:', window.location.origin);
   
   try {
     const url = `${API_BASE}/api/Auth/login`;
