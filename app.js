@@ -69,10 +69,12 @@ async function loadProducts() {
     try {
       // Try to fetch from backend first
       const productsUrl = `${API_BASE}/api/Products`;
-      const response = await fetch(productsUrl);
-      // #region agent log
-      fetch('http://127.0.0.1:7762/ingest/feb180af-38b5-451b-a0d3-cd3b48e14c4b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'978fb6'},body:JSON.stringify({sessionId:'978fb6',location:'app.js:loadProducts',message:'products fetch result',data:{url:productsUrl,status:response.status,ok:response.ok,contentType:response.headers.get('content-type')},timestamp:Date.now(),hypothesisId:'A,B'})}).catch(()=>{});
-      // #endregion
+      const response = await fetch(productsUrl, {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       if (response.ok) {
         const products = await response.json();
         if (products.length > 0) {
@@ -262,12 +264,13 @@ async function handleCheckout(event) {
     
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      },
       body: JSON.stringify(order),
     });
-    // #region agent log
-    fetch('http://127.0.0.1:7762/ingest/feb180af-38b5-451b-a0d3-cd3b48e14c4b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'978fb6'},body:JSON.stringify({sessionId:'978fb6',location:'app.js:checkout',message:'order POST result',data:{endpoint,status:response.status,ok:response.ok,contentType:response.headers.get('content-type'),orderId:order.id},timestamp:Date.now(),hypothesisId:'A,C'})}).catch(()=>{});
-    // #endregion
     console.log('Response status:', response.status);
     console.log('Response ok:', response.ok);
     

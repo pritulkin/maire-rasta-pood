@@ -63,7 +63,12 @@ function saveProducts(products) {
 async function fetchProductsFromBackend() {
   try {
     if (API_BASE) {
-      const response = await fetch(`${API_BASE}/api/Products`);
+      const response = await fetch(`${API_BASE}/api/Products`, {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to load products from backend');
       }
@@ -82,7 +87,12 @@ async function fetchProductsFromBackend() {
 async function fetchOrdersFromBackend() {
   try {
     if (API_BASE) {
-      const response = await fetch(`${API_BASE}/api/Orders`);
+      const response = await fetch(`${API_BASE}/api/Orders`, {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to load orders from backend');
       }
