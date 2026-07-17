@@ -65,18 +65,29 @@ const defaultProducts = [
 ];
 
 async function loadProducts() {
+  console.log('loadProducts called');
+  console.log('API_BASE:', API_BASE);
+  console.log('window.location.hostname:', window.location.hostname);
+  console.log('window.location.protocol:', window.location.protocol);
+  
   if (API_BASE) {
     try {
       // Try to fetch from backend first
       const productsUrl = `${API_BASE}/api/Products`;
+      console.log('Fetching products from:', productsUrl);
       const response = await fetch(productsUrl, {
         headers: {
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'
         }
       });
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      console.log('Response Content-Type:', response.headers.get('content-type'));
+      
       if (response.ok) {
         const products = await response.json();
+        console.log('Products loaded:', products);
         if (products.length > 0) {
           localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
           return products;
