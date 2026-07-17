@@ -65,16 +65,29 @@ const defaultProducts = [
 ];
 
 async function loadProducts() {
+  console.log('loadProducts called');
+  console.log('API_BASE:', API_BASE);
+  console.log('window.location.hostname:', window.location.hostname);
+  console.log('window.location.protocol:', window.location.protocol);
+  
   if (API_BASE) {
     try {
       // Try to fetch from backend first
-      const productsUrl = `${API_BASE}/api/Products`;
-      const response = await fetch(productsUrl);
-      // #region agent log
-      fetch('http://127.0.0.1:7762/ingest/feb180af-38b5-451b-a0d3-cd3b48e14c4b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'978fb6'},body:JSON.stringify({sessionId:'978fb6',location:'app.js:loadProducts',message:'products fetch result',data:{url:productsUrl,status:response.status,ok:response.ok,contentType:response.headers.get('content-type')},timestamp:Date.now(),hypothesisId:'A,B'})}).catch(()=>{});
-      // #endregion
+      const productsUrl = `${API_BASE}/api/Products?_=${new Date().getTime()}`;
+      console.log('Fetching products from:', productsUrl);
+      const response = await fetch(productsUrl, {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      console.log('Response Content-Type:', response.headers.get('content-type'));
+      
       if (response.ok) {
         const products = await response.json();
+        console.log('Products loaded:', products);
         if (products.length > 0) {
           localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
           return products;
@@ -255,19 +268,20 @@ async function handleCheckout(event) {
   statusEl.textContent = 'Tellimusest saadakse teade...';
 
   try {
-    const endpoint = API_BASE ? `${API_BASE}/api/Orders` : '/api/Orders';
+    const endpoint = API_BASE ? `${API_BASE}/api/Orders?_=${new Date().getTime()}` : '/api/Orders';
     console.log('API_BASE:', API_BASE);
     console.log('Sending order to:', endpoint);
     console.log('Order data:', JSON.stringify(order, null, 2));
     
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      },
       body: JSON.stringify(order),
     });
-    // #region agent log
-    fetch('http://127.0.0.1:7762/ingest/feb180af-38b5-451b-a0d3-cd3b48e14c4b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'978fb6'},body:JSON.stringify({sessionId:'978fb6',location:'app.js:checkout',message:'order POST result',data:{endpoint,status:response.status,ok:response.ok,contentType:response.headers.get('content-type'),orderId:order.id},timestamp:Date.now(),hypothesisId:'A,C'})}).catch(()=>{});
-    // #endregion
     console.log('Response status:', response.status);
     console.log('Response ok:', response.ok);
     
