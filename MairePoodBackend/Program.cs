@@ -2,16 +2,28 @@ using MairePoodBackend.Services;
 using MairePoodBackend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllers();
 
-// Configure SQLite database
-var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "mairepood.db");
+// Configure PostgreSQL database
+var dbConnectionString = Environment.GetEnvironmentVariable("DATABASE_URL") 
+    ?? Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_STRING")
+    ?? "Host=localhost;Port=5432;Database=mairepood;Username=postgres;Password=postgres";
+
+// Parse Render DATABASE_URL format if needed
+if (dbConnectionString.StartsWith("postgres://"))
+{
+    var uri = new Uri(dbConnectionString);
+    var userInfo = uri.UserInfo.Split(':');
+    dbConnectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.Trim('/')};Username={userInfo[0]};Password={userInfo[1]}";
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite($"Data Source={dbPath}"));
+    options.UseNpgsql(dbConnectionString));
 
 builder.Services.AddScoped<DatabaseService>();
 
