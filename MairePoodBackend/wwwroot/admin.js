@@ -267,7 +267,7 @@ async function unlockAdmin() {
   console.log('Window origin:', window.location.origin);
   
   try {
-    const url = `${API_BASE}/api/Auth/login`;
+    const url = API_BASE ? `${API_BASE}/api/Auth/login` : '/api/Auth/login';
     console.log('Auth URL:', url);
     console.log('Full URL:', new URL(url, window.location.href).href);
     
