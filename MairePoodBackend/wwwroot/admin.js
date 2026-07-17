@@ -283,6 +283,12 @@ async function unlockAdmin() {
     console.log('Auth response text:', responseText);
     console.log('Auth response text length:', responseText.length);
     console.log('Auth response text starts with:', responseText.substring(0, 100));
+    console.log('Content-Type:', response.headers.get('Content-Type'));
+    
+    const contentType = response.headers.get('Content-Type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error(`Server returned non-JSON response (Content-Type: ${contentType}). Response: ${responseText.substring(0, 200)}`);
+    }
     
     const result = JSON.parse(responseText);
     console.log('Auth response parsed:', result);
