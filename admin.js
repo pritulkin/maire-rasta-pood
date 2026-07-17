@@ -63,7 +63,7 @@ function saveProducts(products) {
 async function fetchProductsFromBackend() {
   try {
     if (API_BASE) {
-      const response = await fetch(`${API_BASE}/api/Products`, {
+      const response = await fetch(`${API_BASE}/api/Products?_=${new Date().getTime()}`, {
         headers: {
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'
@@ -87,7 +87,7 @@ async function fetchProductsFromBackend() {
 async function fetchOrdersFromBackend() {
   try {
     if (API_BASE) {
-      const response = await fetch(`${API_BASE}/api/Orders`, {
+      const response = await fetch(`${API_BASE}/api/Orders?_=${new Date().getTime()}`, {
         headers: {
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'

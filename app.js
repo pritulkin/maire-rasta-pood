@@ -73,7 +73,7 @@ async function loadProducts() {
   if (API_BASE) {
     try {
       // Try to fetch from backend first
-      const productsUrl = `${API_BASE}/api/Products`;
+      const productsUrl = `${API_BASE}/api/Products?_=${new Date().getTime()}`;
       console.log('Fetching products from:', productsUrl);
       const response = await fetch(productsUrl, {
         headers: {
@@ -268,7 +268,7 @@ async function handleCheckout(event) {
   statusEl.textContent = 'Tellimusest saadakse teade...';
 
   try {
-    const endpoint = API_BASE ? `${API_BASE}/api/Orders` : '/api/Orders';
+    const endpoint = API_BASE ? `${API_BASE}/api/Orders?_=${new Date().getTime()}` : '/api/Orders';
     console.log('API_BASE:', API_BASE);
     console.log('Sending order to:', endpoint);
     console.log('Order data:', JSON.stringify(order, null, 2));
