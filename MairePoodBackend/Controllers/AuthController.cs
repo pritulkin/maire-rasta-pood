@@ -7,10 +7,12 @@ namespace MairePoodBackend.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IConfiguration configuration)
+        public AuthController(IConfiguration configuration, ILogger<AuthController> logger)
         {
             _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpPost("login")]
@@ -19,6 +21,11 @@ namespace MairePoodBackend.Controllers
             var adminPassword = _configuration["AdminPassword"] 
                 ?? Environment.GetEnvironmentVariable("ADMIN_PASSWORD")
                 ?? "maire2026"; // Fallback default
+
+            _logger.LogInformation($"AdminPassword from config: {_configuration["AdminPassword"]}");
+            _logger.LogInformation($"ADMIN_PASSWORD env var: {Environment.GetEnvironmentVariable("ADMIN_PASSWORD")}");
+            _logger.LogInformation($"Final adminPassword: {adminPassword}");
+            _logger.LogInformation($"Request password: {request?.Password}");
 
             if (request?.Password == adminPassword)
             {
