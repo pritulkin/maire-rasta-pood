@@ -13,8 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="wwwroot\" />
+    <Compile Include="Controllers\**\*.cs" />
   </ItemGroup>
 
 </Project>
