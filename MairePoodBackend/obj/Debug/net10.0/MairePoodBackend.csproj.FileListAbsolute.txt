@@ -68,7 +68,7 @@ C:\New folder\maire-rasta-pood\MairePoodBackend\bin\Debug\net10.0\runtimes\win-x
 C:\New folder\maire-rasta-pood\MairePoodBackend\bin\Debug\net10.0\runtimes\win-x86\native\e_sqlite3.dll
 C:\New folder\maire-rasta-pood\MairePoodBackend\bin\Debug\net10.0\Npgsql.dll
 C:\New folder\maire-rasta-pood\MairePoodBackend\bin\Debug\net10.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
-C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\compressed\8vklz83nix-{0}-47brt44slh-47brt44slh.gz
 C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\compressed\yan6uencgj-{0}-bak8tkv1v1-bak8tkv1v1.gz
 C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\compressed\eka1enuo97-{0}-n89iferqsn-n89iferqsn.gz
-C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\compressed\h3pk0g0goa-{0}-4sid97xov8-4sid97xov8.gz
+C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\compressed\8vklz83nix-{0}-jey4byogr2-jey4byogr2.gz
+C:\New folder\maire-rasta-pood\MairePoodBackend\obj\Debug\net10.0\compressed\h3pk0g0goa-{0}-fyooazqa1v-fyooazqa1v.gz

@@ -1,4 +1,5 @@
 {
     "FSharp.suggestGitignore": false,
-    "csharp-dev-tools.build.configuration": "Debug"
+    "csharp-dev-tools.build.configuration": "Debug",
+    "liveServer.settings.port": 10001
 }
