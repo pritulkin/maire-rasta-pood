@@ -6,13 +6,21 @@ namespace MairePoodBackend.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        // In production, this should be stored securely (environment variable, secrets manager, etc.)
-        private const string ADMIN_PASSWORD = "maire2026";
+        private readonly IConfiguration _configuration;
+
+        public AuthController(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
 
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
-            if (request?.Password == ADMIN_PASSWORD)
+            var adminPassword = _configuration["AdminPassword"] 
+                ?? Environment.GetEnvironmentVariable("ADMIN_PASSWORD")
+                ?? "maire2026"; // Fallback default
+
+            if (request?.Password == adminPassword)
             {
                 return Ok(new { success = true, message = "Login successful" });
             }
