@@ -63,7 +63,7 @@ function saveProducts(products) {
 async function fetchProductsFromBackend() {
   try {
     if (API_BASE) {
-      const response = await fetch(`${API_BASE}/api/Products?_=${new Date().getTime()}`, {
+      const response = await fetch(`${API_BASE}/api/products?_=${new Date().getTime()}`, {
         headers: {
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'
@@ -87,7 +87,7 @@ async function fetchProductsFromBackend() {
 async function fetchOrdersFromBackend() {
   try {
     if (API_BASE) {
-      const response = await fetch(`${API_BASE}/api/Orders?_=${new Date().getTime()}`, {
+      const response = await fetch(`${API_BASE}/api/orders?_=${new Date().getTime()}`, {
         headers: {
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'
@@ -113,7 +113,7 @@ async function saveOrderToBackend(order) {
   if (!API_BASE) return false;
   
   try {
-    const response = await fetch(`${API_BASE}/api/Orders`, {
+    const response = await fetch(`${API_BASE}/api/orders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(order)
@@ -135,7 +135,7 @@ async function updateOrderStatusInBackend(orderId, newStatus) {
   if (!API_BASE) return false;
   
   try {
-    const response = await fetch(`${API_BASE}/api/Orders/${orderId}`, {
+    const response = await fetch(`${API_BASE}/api/orders/${orderId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus })
@@ -153,7 +153,7 @@ async function deleteOrderFromBackend(orderId) {
   if (!API_BASE) return false;
   
   try {
-    const url = `${API_BASE}/api/Orders/${orderId}`;
+    const url = `${API_BASE}/api/orders/${orderId}`;
     console.log('Delete order URL:', url);
     
     const response = await fetch(url, {
@@ -405,7 +405,7 @@ productForm.addEventListener('submit', async (event) => {
 
   try {
     if (API_BASE) {
-      const url = editingProductId ? `${API_BASE}/api/Products/${id}` : `${API_BASE}/api/Products`;
+      const url = editingProductId ? `${API_BASE}/api/products/${id}` : `${API_BASE}/api/products`;
       const method = editingProductId ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -449,7 +449,7 @@ productList.addEventListener('click', async (event) => {
 
     try {
       if (API_BASE) {
-        const response = await fetch(`${API_BASE}/api/Products/${id}`, { method: 'DELETE' });
+        const response = await fetch(`${API_BASE}/api/products/${id}`, { method: 'DELETE' });
         if (!response.ok) throw new Error('Kustutamine backendis ebaõnnestus');
       }
 
@@ -476,7 +476,7 @@ orderList.addEventListener('click', async (event) => {
       // Laeme tellimused backendist
       let orders = [];
       if (API_BASE) {
-        const response = await fetch(`${API_BASE}/api/Orders`);
+        const response = await fetch(`${API_BASE}/api/orders`);
         orders = await response.json();
       } else {
         orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
