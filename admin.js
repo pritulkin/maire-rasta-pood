@@ -22,22 +22,23 @@ let selectedImageData = null;
 
 // API base URL (update when deployed)
 const API_BASE = (() => {
-  if (typeof window !== 'undefined' && typeof window.API_URL === 'string' && window.API_URL.trim()) {
-    return window.API_URL.replace(/\/$/, '');
-  }
-
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
+    
+    // Kui hostname on localhost, kasuta alati http://localhost:10000
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]') {
+      return 'http://localhost:10000';
+    }
     
     // Kui avad otse failist, kasuta localhost:10000
     if (protocol === 'file:') {
       return 'http://localhost:10000';
     }
     
-    // Kui hostname on localhost, kasuta http://localhost:10000
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]') {
-      return 'http://localhost:10000';
+    // Renderis või teistes keskkondades kasuta window.API_URL kui see on seatud
+    if (typeof window.API_URL === 'string' && window.API_URL.trim()) {
+      return window.API_URL.replace(/\/$/, '');
     }
 
     // Kui kasutad IP-aadressi või domeeni, kasuta sama origin (tühi string)
