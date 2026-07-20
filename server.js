@@ -4,9 +4,62 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { Pool } = require('pg');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
+
+// Database connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+});
+
+// Check if database is available
+const useDatabase = !!process.env.DATABASE_URL;
+
+// Initialize database tables
+async function initDatabase() {
+  if (!useDatabase) {
+    console.log('No DATABASE_URL set, using file-based storage');
+    return;
+  }
+  
+  try {
+    // Create products table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS products (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        price NUMERIC NOT NULL,
+        stock INTEGER NOT NULL,
+        category TEXT,
+        image TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create orders table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        message TEXT,
+        status TEXT DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        items JSONB NOT NULL
+      )
+    `);
+
+    console.log('Database tables initialized');
+  } catch (error) {
+    console.error('Database initialization error:', error);
+  }
+}
+
+initDatabase();
 
 // Middleware
 app.use(cors({
@@ -66,20 +119,33 @@ function syncToGitHub() {
 // ==================== PRODUCTS ====================
 
 // GET: Kõik tooted
-app.get('/api/products', (req, res) => {
+app.get('/api/products', async (req, res) => {
   try {
-    const products = [];
-    
-    if (fs.existsSync(PRODUCTS_DIR)) {
-      const files = fs.readdirSync(PRODUCTS_DIR).filter(f => f.endsWith('.json'));
-      files.forEach(file => {
-        const filePath = path.join(PRODUCTS_DIR, file);
-        const product = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-        products.push(product);
-      });
+    if (useDatabase) {
+      const result = await pool.query('SELECT * FROM products ORDER BY created_at DESC');
+      const products = result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        price: parseFloat(row.price),
+        stock: row.stock,
+        category: row.category,
+        image: row.image
+      }));
+      res.json(products);
+    } else {
+      // Fallback to file-based storage
+      const products = [];
+      if (fs.existsSync(PRODUCTS_DIR)) {
+        const files = fs.readdirSync(PRODUCTS_DIR).filter(f => f.endsWith('.json'));
+        files.forEach(file => {
+          const filePath = path.join(PRODUCTS_DIR, file);
+          const product = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+          products.push(product);
+        });
+      }
+      res.json(products);
     }
-    
-    res.json(products);
   } catch (error) {
     console.error('Error loading products:', error);
     res.status(500).json({ error: 'Failed to load products' });
@@ -87,7 +153,7 @@ app.get('/api/products', (req, res) => {
 });
 
 // POST: Uus toode
-app.post('/api/products', (req, res) => {
+app.post('/api/products', async (req, res) => {
   try {
     const product = req.body;
     
@@ -99,14 +165,20 @@ app.post('/api/products', (req, res) => {
       product.id = crypto.randomUUID();
     }
     
-    const filename = `product-${product.id}.json`;
-    const filepath = path.join(PRODUCTS_DIR, filename);
-    
-    fs.writeFileSync(filepath, JSON.stringify(product, null, 2));
-    console.log(`Product saved to ${filepath}`);
-    
-    // Käivitame giti sünkroniseerimise pärast edukat salvestamist
-    syncToGitHub();
+    if (useDatabase) {
+      await pool.query(
+        'INSERT INTO products (id, name, description, price, stock, category, image) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [product.id, product.name, product.description, product.price, product.stock, product.category, product.image]
+      );
+      console.log(`Product ${product.id} saved to database`);
+    } else {
+      // Fallback to file-based storage
+      const filename = `product-${product.id}.json`;
+      const filepath = path.join(PRODUCTS_DIR, filename);
+      fs.writeFileSync(filepath, JSON.stringify(product, null, 2));
+      console.log(`Product saved to ${filepath}`);
+      syncToGitHub();
+    }
     
     res.status(201).json({
       success: true,
@@ -120,23 +192,36 @@ app.post('/api/products', (req, res) => {
 });
 
 // PUT: Uuenda toodet
-app.put('/api/products/:id', (req, res) => {
+app.put('/api/products/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const product = req.body;
     
-    const filename = `product-${id}.json`;
-    const filepath = path.join(PRODUCTS_DIR, filename);
-    
-    if (!fs.existsSync(filepath)) {
-      return res.status(404).json({ error: 'Product not found' });
+    if (useDatabase) {
+      const result = await pool.query('SELECT id FROM products WHERE id = $1', [id]);
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      
+      await pool.query(
+        'UPDATE products SET name = $1, description = $2, price = $3, stock = $4, category = $5, image = $6 WHERE id = $7',
+        [product.name, product.description, product.price, product.stock, product.category, product.image, id]
+      );
+      console.log(`Product ${id} updated in database`);
+    } else {
+      // Fallback to file-based storage
+      const filename = `product-${id}.json`;
+      const filepath = path.join(PRODUCTS_DIR, filename);
+      
+      if (!fs.existsSync(filepath)) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      
+      product.id = id; 
+      fs.writeFileSync(filepath, JSON.stringify(product, null, 2));
+      console.log(`Product ${id} updated`);
+      syncToGitHub();
     }
-    
-    product.id = id; 
-    fs.writeFileSync(filepath, JSON.stringify(product, null, 2));
-    console.log(`Product ${id} updated`);
-    
-    syncToGitHub();
     
     res.json({
       success: true,
@@ -149,22 +234,33 @@ app.put('/api/products/:id', (req, res) => {
 });
 
 // DELETE: Kustuta toode
-app.delete('/api/products/:id', (req, res) => {
+app.delete('/api/products/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const filename = `product-${id}.json`;
-    const filepath = path.join(PRODUCTS_DIR, filename);
     
-    if (fs.existsSync(filepath)) {
-      fs.unlinkSync(filepath);
-      console.log(`Product ${id} deleted`);
+    if (useDatabase) {
+      const result = await pool.query('DELETE FROM products WHERE id = $1 RETURNING id', [id]);
       
-      syncToGitHub();
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
       
-      res.json({ success: true, message: 'Product deleted' });
+      console.log(`Product ${id} deleted from database`);
     } else {
-      res.status(404).json({ error: 'Product not found' });
+      // Fallback to file-based storage
+      const filename = `product-${id}.json`;
+      const filepath = path.join(PRODUCTS_DIR, filename);
+      
+      if (fs.existsSync(filepath)) {
+        fs.unlinkSync(filepath);
+        console.log(`Product ${id} deleted`);
+        syncToGitHub();
+      } else {
+        return res.status(404).json({ error: 'Product not found' });
+      }
     }
+    
+    res.json({ success: true, message: 'Product deleted' });
   } catch (error) {
     console.error('Error deleting product:', error);
     res.status(500).json({ error: 'Failed to delete product' });
@@ -174,20 +270,33 @@ app.delete('/api/products/:id', (req, res) => {
 // ==================== ORDERS ====================
 
 // GET: Kõik tellimused
-app.get('/api/orders', (req, res) => {
+app.get('/api/orders', async (req, res) => {
   try {
-    const orders = [];
-    
-    if (fs.existsSync(ORDERS_DIR)) {
-      const files = fs.readdirSync(ORDERS_DIR).filter(f => f.endsWith('.json'));
-      files.forEach(file => {
-        const filePath = path.join(ORDERS_DIR, file);
-        const order = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-        orders.push(order);
-      });
+    if (useDatabase) {
+      const result = await pool.query('SELECT * FROM orders ORDER BY created_at DESC');
+      const orders = result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        email: row.email,
+        message: row.message,
+        status: row.status,
+        createdAt: row.created_at,
+        items: row.items
+      }));
+      res.json(orders);
+    } else {
+      // Fallback to file-based storage
+      const orders = [];
+      if (fs.existsSync(ORDERS_DIR)) {
+        const files = fs.readdirSync(ORDERS_DIR).filter(f => f.endsWith('.json'));
+        files.forEach(file => {
+          const filePath = path.join(ORDERS_DIR, file);
+          const order = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+          orders.push(order);
+        });
+      }
+      res.json(orders);
     }
-    
-    res.json(orders);
   } catch (error) {
     console.error('Error loading orders:', error);
     res.status(500).json({ error: 'Failed to load orders' });
@@ -195,7 +304,7 @@ app.get('/api/orders', (req, res) => {
 });
 
 // POST: Uus tellimus
-app.post('/api/orders', (req, res) => {
+app.post('/api/orders', async (req, res) => {
   try {
     console.log('POST /api/orders received');
     console.log('Request body:', JSON.stringify(req.body, null, 2));
@@ -218,16 +327,20 @@ app.post('/api/orders', (req, res) => {
       order.createdAt = new Date().toISOString();
     }
     
-    const filename = `order-${order.id}.json`;
-    const filepath = path.join(ORDERS_DIR, filename);
-    
-    fs.writeFileSync(filepath, JSON.stringify(order, null, 2));
-    // #region agent log
-    fetch('http://127.0.0.1:7762/ingest/feb180af-38b5-451b-a0d3-cd3b48e14c4b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'978fb6'},body:JSON.stringify({sessionId:'978fb6',location:'server.js:POST orders',message:'order JSON written',data:{filepath,orderId:order.id,fileExists:fs.existsSync(filepath)},timestamp:Date.now(),hypothesisId:'C,D'})}).catch(()=>{});
-    // #endregion
-    console.log(`Order saved to ${filepath}`);
-    
-    syncToGitHub();
+    if (useDatabase) {
+      await pool.query(
+        'INSERT INTO orders (id, name, email, message, status, created_at, items) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [order.id, order.name, order.email, order.message, order.status, order.createdAt, JSON.stringify(order.items)]
+      );
+      console.log(`Order ${order.id} saved to database`);
+    } else {
+      // Fallback to file-based storage
+      const filename = `order-${order.id}.json`;
+      const filepath = path.join(ORDERS_DIR, filename);
+      fs.writeFileSync(filepath, JSON.stringify(order, null, 2));
+      console.log(`Order saved to ${filepath}`);
+      syncToGitHub();
+    }
     
     res.status(201).json({
       success: true,
@@ -241,7 +354,7 @@ app.post('/api/orders', (req, res) => {
 });
 
 // PATCH: Uuenda tellimuse staatust
-app.patch('/api/orders/:id', (req, res) => {
+app.patch('/api/orders/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -250,20 +363,29 @@ app.patch('/api/orders/:id', (req, res) => {
       return res.status(400).json({ error: 'Invalid status. Must be "pending" or "processed"' });
     }
     
-    const filename = `order-${id}.json`;
-    const filepath = path.join(ORDERS_DIR, filename);
-    
-    if (!fs.existsSync(filepath)) {
-      return res.status(404).json({ error: 'Order not found' });
+    if (useDatabase) {
+      const result = await pool.query('SELECT id FROM orders WHERE id = $1', [id]);
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+      
+      await pool.query('UPDATE orders SET status = $1 WHERE id = $2', [status, id]);
+      console.log(`Order ${id} status updated to ${status}`);
+    } else {
+      // Fallback to file-based storage
+      const filename = `order-${id}.json`;
+      const filepath = path.join(ORDERS_DIR, filename);
+      
+      if (!fs.existsSync(filepath)) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+      
+      const order = JSON.parse(fs.readFileSync(filepath, 'utf8'));
+      order.status = status;
+      fs.writeFileSync(filepath, JSON.stringify(order, null, 2));
+      console.log(`Order ${id} status updated to ${status}`);
+      syncToGitHub();
     }
-    
-    const order = JSON.parse(fs.readFileSync(filepath, 'utf8'));
-    order.status = status;
-    
-    fs.writeFileSync(filepath, JSON.stringify(order, null, 2));
-    console.log(`Order ${id} status updated to ${status}`);
-    
-    syncToGitHub();
     
     res.json({
       success: true,
@@ -276,22 +398,33 @@ app.patch('/api/orders/:id', (req, res) => {
 });
 
 // DELETE: Kustuta tellimus
-app.delete('/api/orders/:id', (req, res) => {
+app.delete('/api/orders/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const filename = `order-${id}.json`;
-    const filepath = path.join(ORDERS_DIR, filename);
     
-    if (fs.existsSync(filepath)) {
-      fs.unlinkSync(filepath);
-      console.log(`Order ${id} deleted`);
+    if (useDatabase) {
+      const result = await pool.query('DELETE FROM orders WHERE id = $1 RETURNING id', [id]);
       
-      syncToGitHub();
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
       
-      res.json({ success: true, message: 'Order deleted' });
+      console.log(`Order ${id} deleted from database`);
     } else {
-      res.status(404).json({ error: 'Order not found' });
+      // Fallback to file-based storage
+      const filename = `order-${id}.json`;
+      const filepath = path.join(ORDERS_DIR, filename);
+      
+      if (fs.existsSync(filepath)) {
+        fs.unlinkSync(filepath);
+        console.log(`Order ${id} deleted`);
+        syncToGitHub();
+      } else {
+        return res.status(404).json({ error: 'Order not found' });
+      }
     }
+    
+    res.json({ success: true, message: 'Order deleted' });
   } catch (error) {
     console.error('Error deleting order:', error);
     res.status(500).json({ error: 'Failed to delete order' });
