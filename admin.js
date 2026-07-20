@@ -85,18 +85,23 @@ async function fetchProductsFromBackend() {
 
 // MUUDETUD: Laeb tellimused backendist /orders kaustast
 async function fetchOrdersFromBackend() {
+  console.log('fetchOrdersFromBackend called, API_BASE:', API_BASE);
   try {
     if (API_BASE) {
-      const response = await fetch(`${API_BASE}/api/orders?_=${new Date().getTime()}`, {
+      const url = `${API_BASE}/api/orders?_=${new Date().getTime()}`;
+      console.log('Fetching orders from:', url);
+      const response = await fetch(url, {
         headers: {
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'
         }
       });
+      console.log('Orders response status:', response.status, 'ok:', response.ok);
       if (!response.ok) {
         throw new Error('Failed to load orders from backend');
       }
       const orders = await response.json();
+      console.log('Orders fetched:', orders);
       // Salvestame ka lokaalselt varukoopiana
       localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
       return orders;
@@ -105,7 +110,9 @@ async function fetchOrdersFromBackend() {
     console.warn('Could not fetch orders from backend:', error);
   }
 
-  return JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+  const localOrders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+  console.log('Using local orders:', localOrders);
+  return localOrders;
 }
 
 // MUUDETUD: Tellimuste salvestamine backendisse (orders kausta)
@@ -150,7 +157,11 @@ async function updateOrderStatusInBackend(orderId, newStatus) {
 
 // MUUDETUD: Tellimuse kustutamine backendist
 async function deleteOrderFromBackend(orderId) {
-  if (!API_BASE) return false;
+  console.log('deleteOrderFromBackend called, API_BASE:', API_BASE, 'orderId:', orderId);
+  if (!API_BASE) {
+    console.log('No API_BASE, cannot delete from backend');
+    return false;
+  }
   
   try {
     const url = `${API_BASE}/api/orders/${orderId}`;
@@ -162,6 +173,11 @@ async function deleteOrderFromBackend(orderId) {
     
     console.log('Delete order response status:', response.status);
     console.log('Delete order response ok:', response.ok);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Delete order error response:', errorText);
+    }
     
     return response.ok;
   } catch (error) {
