@@ -298,6 +298,30 @@ app.delete('/api/orders/:id', (req, res) => {
   }
 });
 
+// ==================== AUTH ====================
+
+// POST: Admin login
+app.post('/api/Auth/login', (req, res) => {
+  try {
+    const { password } = req.body;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    
+    if (!adminPassword) {
+      console.error('ADMIN_PASSWORD environment variable not set');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+    
+    if (password === adminPassword) {
+      res.json({ success: true });
+    } else {
+      res.status(401).json({ success: false, error: 'Invalid password' });
+    }
+  } catch (error) {
+    console.error('Auth error:', error);
+    res.status(500).json({ error: 'Authentication failed' });
+  }
+});
+
 // ==================== START SERVER ====================
 
 app.listen(PORT, '0.0.0.0', () => {
