@@ -1,0 +1,15 @@
+{
+  "id": "order-1784545072861-kulofuvsh",
+  "name": "Priit Linnakivi",
+  "email": "priit.linnakivi@gmail.com",
+  "message": "Test 3",
+  "createdAt": "2026-07-20T10:57:52.861Z",
+  "items": [
+    {
+      "productId": "0de1c350-03c1-45e5-b71b-7e8d1a157958",
+      "name": "Pudel",
+      "quantity": 1
+    }
+  ],
+  "status": "pending"
+}
