@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MairePoodBackend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+085e6f0b535aaab1e2476eb14eabd1b4f9a81aaa")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+066212ad12d08fb789fdefa219f0306992f7a65e")]
 [assembly: System.Reflection.AssemblyProductAttribute("MairePoodBackend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MairePoodBackend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
