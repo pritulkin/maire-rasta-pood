@@ -58,6 +58,12 @@ img {
   text-transform: uppercase;
 }
 
+.brand-logo {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
 .main-nav {
   display: flex;
   gap: 1rem;
