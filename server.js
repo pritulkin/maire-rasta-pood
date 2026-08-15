@@ -65,7 +65,7 @@ initDatabase();
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type']
+  allowedHeaders: ['Content-Type', 'Cache-Control', 'Pragma']
 }));
 app.use(express.json({ limit: '50mb' }));
 // #region agent log
