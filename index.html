@@ -11,6 +11,38 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>" />
     <link rel="canonical" href="https://mairerasta.eu/" />
     <link rel="stylesheet" href="styles.css?v=2" />
+    <style>
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: #2f241d;
+        background: linear-gradient(135deg, #fcf7f1, #fdfaf4);
+        line-height: 1.6;
+      }
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(252, 247, 241, 0.92);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid #eadccb;
+      }
+      .nav-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+      }
+      .container {
+        width: min(1120px, calc(100% - 2rem));
+        margin: 0 auto;
+      }
+      .brand-logo {
+        height: 40px;
+        width: auto;
+        display: block;
+      }
+    </style>
     <script>
       // Render backend URL
       window.API_URL = 'https://www.maireart.eu';
