@@ -102,8 +102,13 @@ function ensureDirectory(dirPath) {
 }
 
 const STORAGE_ROOT = process.env.DATA_DIR || process.env.STORAGE_DIR || path.join(os.tmpdir(), 'mairepood-data');
-const ORDERS_DIR = ensureDirectory(path.join(STORAGE_ROOT, 'orders'));
-const PRODUCTS_DIR = ensureDirectory(path.join(STORAGE_ROOT, 'products'));
+
+// In Vercel/serverless environments, always use tmpdir
+const isVercel = process.env.VERCEL || process.env.AWS_REGION || process.env.VERCEL_ENV;
+const effectiveStorageRoot = isVercel ? path.join(os.tmpdir(), 'mairepood-data') : STORAGE_ROOT;
+
+const ORDERS_DIR = ensureDirectory(path.join(effectiveStorageRoot, 'orders'));
+const PRODUCTS_DIR = ensureDirectory(path.join(effectiveStorageRoot, 'products'));
 
 console.log(`Using storage root: ${STORAGE_ROOT}`);
 console.log(`Orders directory: ${ORDERS_DIR}`);
