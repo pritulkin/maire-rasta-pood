@@ -86,6 +86,9 @@ app.use(express.static(__dirname, {
     if (path.endsWith('.css')) {
       res.setHeader('Content-Type', 'text/css; charset=utf-8');
     }
+    if (path.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    }
   }
 }));
 
