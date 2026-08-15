@@ -1003,6 +1003,24 @@ passwordInput.addEventListener('keypress', (e) => {
 });
 
 (() => {
+  // Fix logo and navigation URLs dynamically
+  const baseUrl = window.location.origin;
+  const logo = document.querySelector('.brand-logo');
+  const navLinks = document.querySelectorAll('.main-nav a');
+  
+  if (logo) {
+    logo.src = `${baseUrl}/img/mrlogo.png`;
+  }
+  
+  navLinks.forEach(link => {
+    if (link.href.includes('index.html')) {
+      link.href = `${baseUrl}/index.html`;
+    }
+    if (link.href.includes('admin.html')) {
+      link.href = `${baseUrl}/admin.html`;
+    }
+  });
+  
   if (sessionStorage.getItem(ACCESS_KEY) === 'true') {
     showAdminArea();
     Promise.all([fetchProductsFromBackend(), fetchOrdersFromBackend()]).then(() => {
