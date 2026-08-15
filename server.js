@@ -2,6 +2,7 @@
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
 const { Pool } = require('pg');
@@ -79,20 +80,31 @@ app.use((req, res, next) => {
 // #endregion
 app.use(express.static(__dirname));
 
-// Kataloogide asukohad
-const ORDERS_DIR = path.join(__dirname, 'orders');
-const PRODUCTS_DIR = path.join(__dirname, 'products');
-
-// Loome vajadusel andmekataloogid
-if (!fs.existsSync(ORDERS_DIR)) {
-  fs.mkdirSync(ORDERS_DIR, { recursive: true });
-  console.log('Created orders directory');
+// Use a writable storage location. In Vercel/serverless environments, __dirname is usually read-only.
+function ensureDirectory(dirPath) {
+  try {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+    const stat = fs.statSync(dirPath);
+    if (!stat.isDirectory()) {
+      throw new Error(`${dirPath} exists but is not a directory`);
+    }
+    return dirPath;
+  } catch (error) {
+    const fallback = path.join(os.tmpdir(), 'mairepood-data', path.basename(dirPath));
+    fs.mkdirSync(fallback, { recursive: true });
+    return fallback;
+  }
 }
 
-if (!fs.existsSync(PRODUCTS_DIR)) {
-  fs.mkdirSync(PRODUCTS_DIR, { recursive: true });
-  console.log('Created products directory');
-}
+const STORAGE_ROOT = process.env.DATA_DIR || process.env.STORAGE_DIR || path.join(os.tmpdir(), 'mairepood-data');
+const ORDERS_DIR = ensureDirectory(path.join(STORAGE_ROOT, 'orders'));
+const PRODUCTS_DIR = ensureDirectory(path.join(STORAGE_ROOT, 'products'));
+
+console.log(`Using storage root: ${STORAGE_ROOT}`);
+console.log(`Orders directory: ${ORDERS_DIR}`);
+console.log(`Products directory: ${PRODUCTS_DIR}`);
 
 // ==================== GITHUB SYNC ====================
 
