@@ -150,6 +150,7 @@ function syncToGitHub() {
 // GET: Kõik tooted
 app.get('/api/products', async (req, res) => {
   try {
+    console.log('Loading products, useDatabase:', useDatabase);
     if (useDatabase) {
       const result = await pool.query('SELECT * FROM products ORDER BY created_at DESC');
       const products = result.rows.map(row => ({
@@ -161,23 +162,29 @@ app.get('/api/products', async (req, res) => {
         category: row.category,
         image: row.image
       }));
+      console.log('Loaded products from database:', products.length);
       res.json(products);
     } else {
       // Fallback to file-based storage
+      console.log('Using file-based storage, PRODUCTS_DIR:', PRODUCTS_DIR);
       const products = [];
       if (fs.existsSync(PRODUCTS_DIR)) {
         const files = fs.readdirSync(PRODUCTS_DIR).filter(f => f.endsWith('.json'));
+        console.log('Found product files:', files.length);
         files.forEach(file => {
           const filePath = path.join(PRODUCTS_DIR, file);
           const product = JSON.parse(fs.readFileSync(filePath, 'utf8'));
           products.push(product);
         });
+      } else {
+        console.log('PRODUCTS_DIR does not exist');
       }
+      console.log('Loaded products from files:', products.length);
       res.json(products);
     }
   } catch (error) {
     console.error('Error loading products:', error);
-    res.status(500).json({ error: 'Failed to load products' });
+    res.status(500).json({ error: 'Failed to load products', details: error.message });
   }
 });
 
