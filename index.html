@@ -763,16 +763,20 @@ async function handleCheckout(event) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Ensure logo and admin link use relative paths (works on case-sensitive hosts)
+  // Fix logo and admin link URLs dynamically
+  const baseUrl = window.location.origin;
   const logo = document.querySelector('.brand-logo');
   const adminLink = document.querySelector('a[href="admin.html"]');
-
+  
+  // Use relative paths for local development, absolute for production
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]';
+  
   if (logo) {
-    logo.src = 'img/mrlogo.png';
+    logo.src = isLocal ? 'img/mrlogo.png' : `${baseUrl}/img/mrlogo.png`;
   }
-
+  
   if (adminLink) {
-    adminLink.href = 'admin.html';
+    adminLink.href = isLocal ? 'admin.html' : `${baseUrl}/admin.html`;
   }
   
   await renderProducts();

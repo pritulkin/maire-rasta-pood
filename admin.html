@@ -1004,20 +1004,23 @@ passwordInput.addEventListener('keypress', (e) => {
 
 (() => {
   // Fix logo and navigation URLs dynamically
+  const baseUrl = window.location.origin;
   const logo = document.querySelector('.brand-logo');
   const navLinks = document.querySelectorAll('.main-nav a');
-
+  
+  // Use relative paths for local development, absolute for production
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]';
+  
   if (logo) {
-    logo.src = 'img/mrlogo.png';
+    logo.src = isLocal ? 'img/mrlogo.png' : `${baseUrl}/img/mrlogo.png`;
   }
-
+  
   navLinks.forEach(link => {
-    const href = link.getAttribute('href') || '';
-    if (href.includes('index.html')) {
-      link.href = 'index.html';
+    if (link.href.includes('index.html')) {
+      link.href = isLocal ? 'index.html' : `${baseUrl}/index.html`;
     }
-    if (href.includes('admin.html')) {
-      link.href = 'admin.html';
+    if (link.href.includes('admin.html')) {
+      link.href = isLocal ? 'admin.html' : `${baseUrl}/admin.html`;
     }
   });
   
