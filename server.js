@@ -81,7 +81,13 @@ app.use((req, res, next) => {
   next();
 });
 // #endregion
-app.use(express.static(__dirname));
+app.use(express.static(__dirname, {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css; charset=utf-8');
+    }
+  }
+}));
 
 // Use a writable storage location. In Vercel/serverless environments, __dirname is usually read-only.
 function ensureDirectory(dirPath) {
