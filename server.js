@@ -469,6 +469,18 @@ app.post('/api/Auth/login', (req, res) => {
 
 // ==================== START SERVER ====================
 
+// Serve index.html for root and for non-API routes (SPA fallback)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
   console.log(`Orders directory: ${ORDERS_DIR}`);
