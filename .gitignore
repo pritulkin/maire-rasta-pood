@@ -1,2 +1,7 @@
 .vercel
 .env*
+node_modules/
+*.db
+*.db-shm
+*.db-wal
+*.log
