@@ -763,17 +763,16 @@ async function handleCheckout(event) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Fix logo and admin link URLs dynamically
-  const baseUrl = window.location.origin;
+  // Ensure logo and admin link use relative paths (works on case-sensitive hosts)
   const logo = document.querySelector('.brand-logo');
   const adminLink = document.querySelector('a[href="admin.html"]');
-  
+
   if (logo) {
-    logo.src = `${baseUrl}/img/mrlogo.png`;
+    logo.src = 'img/mrlogo.png';
   }
-  
+
   if (adminLink) {
-    adminLink.href = `${baseUrl}/admin.html`;
+    adminLink.href = 'admin.html';
   }
   
   await renderProducts();
