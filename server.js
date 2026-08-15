@@ -13,7 +13,10 @@ const PORT = process.env.PORT || 10000;
 // Database connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+  ssl: process.env.DATABASE_URL ? {
+    rejectUnauthorized: false,
+    mode: 'require'
+  } : false
 });
 
 // Check if database is available
