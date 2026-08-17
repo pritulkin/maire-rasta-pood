@@ -70,7 +70,6 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
-app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 app.UseHsts();
 app.UseResponseCompression();
@@ -85,6 +84,7 @@ app.Use(async (context, next) =>
     await next();
 });
 app.UseRouting();
+app.UseCors("AllowAll");
 app.MapControllers();
 app.UseStaticFiles(new StaticFileOptions
 {
