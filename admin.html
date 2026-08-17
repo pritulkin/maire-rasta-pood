@@ -504,7 +504,7 @@ const API_BASE = (() => {
     }
 
     if (protocol === 'http:' || protocol === 'https:') {
-      return '';
+      return window.location.origin;
     }
   }
 
