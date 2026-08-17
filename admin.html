@@ -491,23 +491,30 @@ const API_BASE = (() => {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
     
+    console.log('API_BASE Debug - hostname:', hostname, 'protocol:', protocol);
+    
     if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]') {
+      console.log('API_BASE Debug - using localhost');
       return 'http://localhost:10000';
     }
     
     if (protocol === 'file:') {
+      console.log('API_BASE Debug - using file protocol');
       return 'http://localhost:10000';
     }
     
     if (typeof window.API_URL === 'string' && window.API_URL.trim()) {
+      console.log('API_BASE Debug - using window.API_URL:', window.API_URL);
       return window.API_URL.replace(/\/$/, '');
     }
 
     if (protocol === 'http:' || protocol === 'https:') {
+      console.log('API_BASE Debug - using window.location.origin:', window.location.origin);
       return window.location.origin;
     }
   }
 
+  console.log('API_BASE Debug - using default localhost');
   return 'http://localhost:10000';
 })();
 
