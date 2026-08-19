@@ -107,19 +107,30 @@
       margin-bottom: 2rem;
     }
 
-    .back-button {
-      display: inline-block;
-      background: #3498db;
-      color: #fff;
-      padding: 0.75rem 1.5rem;
-      border-radius: 4px;
+    .button {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      border: none;
+      border-radius: 999px;
+      padding: 0.8rem 1.2rem;
+      cursor: pointer;
+      font-weight: 700;
       text-decoration: none;
-      font-weight: 500;
-      transition: background 0.3s;
     }
 
-    .back-button:hover {
-      background: #2980b9;
+    .button.primary {
+      background: #3498db;
+      color: #fff;
+    }
+
+    .button.secondary {
+      background: #ecf0f1;
+      color: #2c3e50;
+    }
+
+    .button:hover {
+      opacity: 0.9;
     }
 
     .loading {
@@ -243,7 +254,7 @@
             <div class="price">€${Number(product.price).toFixed(2)}</div>
             <div class="stock">Laos: ${product.stock} tk</div>
             <div class="description">${product.description}</div>
-            <a href="index.html" class="back-button">Tagasi avalehele</a>
+            <a href="index.html" class="button secondary">Tagasi avalehele</a>
           </div>
         </div>
       `;
