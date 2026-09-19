@@ -1,0 +1,23 @@
+# Maire Rästa | Kunstiesemed
+
+> Maire Rästa kunstiesemete veebipood — isikupärased tööd ja lihtne administreerimine.
+
+## Core Features / Products
+- [Kunstiesemed](https://www.maireart.eu/kunstiesemed): Explore unique handcrafted artworks designed to bring warmth to your home.
+- [Praegu müügil](https://www.maireart.eu/praegu-mysil): View currently available artworks and shop the latest collections.
+- [Valitud kollektsioon](https://www.maireart.eu/valitud-kollektsioon): Discover handpicked selection of exclusive pieces.
+
+## Pricing and Plans
+- [Ostukorv](https://www.maireart.eu/ostukorv): Review your selection and proceed to checkout for your purchase.
+  
+## Resources and Insights
+- [Artiklid, mida armastada](https://www.maireart.eu/artiklid-mida-armastada): Learn about featured items and the stories behind them.
+
+## Support and Documentation
+- [Tellimuse andmed](https://www.maireart.eu/tellimuse-andmed): Provide your name and email to place an order message.
+  
+## Company Information
+- [About](https://www.maireart.eu/about): Learn more about Maire Rästa and the mission behind the artworks.
+
+## Contact and Support
+- [Contact](https://www.maireart.eu/contact): Get in touch for inquiries or assistance with your order.
