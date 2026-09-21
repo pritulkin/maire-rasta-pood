@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://maireart.eu/sitemap.xml
+LLMS: https://maireart.eu/llms.txt
